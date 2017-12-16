@@ -10,3 +10,8 @@ import (
 func Check() {
 	fmt.Printf("%#v", gotalk.NoLimits)
 }
+
+//Add adds
+func Add(x int, y int) int {
+	return x + y
+}
