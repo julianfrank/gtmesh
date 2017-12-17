@@ -6,14 +6,14 @@ import (
 
 //Host host struct
 type Host struct {
-	TCPUrl string `json:"tcp_url,omitempty"`
+	TCPUrl string `json:"tcp_url"`
 	WSUrl  string `json:"ws_url,omitempty"`
 }
 
 //Service service struct
 type Service struct {
-	ServiceName string `json:"service_name,omitempty"`
-	Local       bool   `json:"local,omitempty"`
+	ServiceName string `json:"service_name"`
+	Local       bool   `json:"local"`
 }
 
 //HostMap map of host to services
