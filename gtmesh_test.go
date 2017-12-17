@@ -23,7 +23,8 @@ func TestBufferRequest(t *testing.T) {
 		wantErr bool
 	}{
 		{"no service and data", args{serviceName: "", payLoad: []byte{}}, []byte{}, true},
-		{"no data", args{serviceName: "echo", payLoad: []byte{}}, []byte{}, false},
+		{"echo but no data", args{serviceName: "echo", payLoad: []byte{}}, []byte{}, false},
+		{"unregistered service", args{serviceName: "unknown", payLoad: []byte{}}, []byte{}, true},
 		{"echo with data", args{serviceName: "echo", payLoad: []byte("testEcho")}, []byte("testEcho"), false},
 	}
 	for _, tt := range tests {
@@ -33,7 +34,7 @@ func TestBufferRequest(t *testing.T) {
 				t.Errorf("BufferRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && (!reflect.DeepEqual(got, tt.want)) {
+			if (err == nil && len(tt.args.payLoad) != 0) && (!reflect.DeepEqual(got, tt.want)) {
 				t.Errorf("BufferRequest() = %v, want %v", got, tt.want)
 			}
 		})
