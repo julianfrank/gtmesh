@@ -8,7 +8,7 @@ import (
 
 func TestAddLocalService(t *testing.T) {
 	type args struct {
-		service Service
+		service string
 		handler gotalk.BufferReqHandler
 	}
 	var bufferHandler gotalk.BufferReqHandler
@@ -18,9 +18,9 @@ func TestAddLocalService(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"empty service.ServiceName", args{service: Service{ServiceName: ""}, handler: bufferHandler}, true},
-		{"empty handler", args{service: Service{ServiceName: "x"}, handler: nil}, true},
-		{"x,bufferHandler", args{service: Service{ServiceName: "x"}, handler: bufferHandler}, false},
+		{"empty service.ServiceName", args{service: "", handler: bufferHandler}, true},
+		{"empty handler", args{service: "x", handler: nil}, true},
+		{"x,bufferHandler", args{service: "x", handler: bufferHandler}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAddLocalService(t *testing.T) {
 
 func TestAddService(t *testing.T) {
 	type args struct {
-		service Service
+		service string
 		tcp     string
 	}
 	tests := []struct {
@@ -47,9 +47,9 @@ func TestAddService(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"empty service.ServiceName", args{service: Service{ServiceName: ""}, tcp: "x"}, true},
-		{"empty tcp", args{service: Service{ServiceName: "x"}, tcp: ""}, true},
-		{"x,tcp", args{service: Service{ServiceName: "x"}, tcp: "tcp"}, false},
+		{"empty service.ServiceName", args{service: "", tcp: "x"}, true},
+		{"empty tcp", args{service: "x", tcp: ""}, true},
+		{"x,tcp", args{service: "x", tcp: "tcp"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

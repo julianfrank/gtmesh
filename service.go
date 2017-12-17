@@ -5,17 +5,11 @@ import (
 	"github.com/rsms/gotalk"
 )
 
-//Service service struct
-type Service struct {
-	ServiceName string `json:"service_name"`
-	Sys         bool   `json:"Sys"` //Set true if the service is a gtmesh service
-}
-
 //ServiceMap map of services to hosts
-type ServiceMap map[Service][]string
+type ServiceMap map[string][]string
 
 //LocalServiceMap map of Local Services
-type LocalServiceMap map[Service]gotalk.BufferReqHandler
+type LocalServiceMap map[string]gotalk.BufferReqHandler
 
 var (
 	//LocalServiceStore Hosts the map of all local Services
@@ -27,9 +21,9 @@ var (
 )
 
 //AddLocalService add a Local Service to the map
-func AddLocalService(service Service, handler gotalk.BufferReqHandler) error {
+func AddLocalService(service string, handler gotalk.BufferReqHandler) error {
 	console.Log("service.go::AddLocalService(service:%#v,handler:%#v)", service, handler)
-	if len(service.ServiceName) == 0 {
+	if len(service) == 0 {
 		return console.Error("service.go::AddLocalService(service:%#v\tError:service.ServiceName Cannot be empty", service)
 	}
 	if handler == nil {
@@ -40,15 +34,15 @@ func AddLocalService(service Service, handler gotalk.BufferReqHandler) error {
 		ServiceHandlers = gotalk.NewHandlers()
 	}
 	LocalServiceStore[service] = handler
-	ServiceHandlers.HandleBufferRequest(service.ServiceName, handler)
+	ServiceHandlers.HandleBufferRequest(service, handler)
 
 	return AddService(service, LocalHost.TCPUrl)
 }
 
 //AddService add a service to Service Map
-func AddService(service Service, tcp string) error {
+func AddService(service string, tcp string) error {
 	console.Log("service.go::AddService(service:%#v,tcp:%s)", service, tcp)
-	if len(service.ServiceName) == 0 {
+	if len(service) == 0 {
 		return console.Error("service.go::AddService(service:%#v\tError:service.ServiceName Cannot be empty", service)
 	}
 	if len(tcp) == 0 {

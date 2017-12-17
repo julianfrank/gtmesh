@@ -80,6 +80,9 @@ func startTCPServer() error {
 	if err != nil {
 		return console.Error("startTCPServer() Error:%s", err.Error())
 	}
+
+	AddLocalService("echo", echoHandler)
+
 	tcpServer.Handlers = ServiceHandlers
 
 	go tcpServer.Accept()
@@ -87,6 +90,7 @@ func startTCPServer() error {
 }
 
 //startTCPServer Start the tcp server
+//[NOT READY]
 func startWSServer() error {
 	console.Log("host.go::startWSServer() for LocalHost.WSURL:%s", LocalHost.WSUrl)
 
@@ -107,4 +111,7 @@ func startWSServer() error {
 
 	}
 	return nil
+}
+func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	return payload, nil
 }
