@@ -1,8 +1,6 @@
 package gtmesh
 
 import (
-	"fmt"
-
 	"github.com/julianfrank/console"
 )
 
@@ -10,7 +8,7 @@ import (
 func SetLocalHost(tcp string, ws string) error {
 	console.Log("host.go::SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
 	if len(tcp) == 0 {
-		return fmt.Errorf("TCP Cannot be empty")
+		return console.Error("TCP Cannot be empty")
 	}
 	LocalHost = Host{TCPUrl: tcp, WSUrl: ws}
 	return nil
