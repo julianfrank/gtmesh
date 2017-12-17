@@ -24,6 +24,7 @@ var (
 //SetLocalHost Setup Local Host Details. must perform this before any other operation
 func SetLocalHost(tcp string, ws string) error {
 	console.Log("host.go::SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
+	//Sanitary Check
 	if len(tcp) == 0 {
 		return console.Error("TCP Cannot be empty")
 	}
@@ -34,6 +35,7 @@ func SetLocalHost(tcp string, ws string) error {
 	if temptcp.Scheme != "tcp" || temptcp.Host == "" || temptcp.Port() == "" {
 		return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: tcp has Bad Format", tcp, ws)
 	}
+	//Check ws only if not null...WebSocket is optional
 	if ws != "" {
 		tempws, err := url.ParseRequestURI(ws)
 		if err != nil {
@@ -56,12 +58,12 @@ func SetLocalHost(tcp string, ws string) error {
 //StartServers Start the tCP and WebSocket Servers
 func StartServers() error {
 	console.Log("host.go::StartServers()")
-
+	//Start TCP Server
 	err := startTCPServer()
 	if err != nil {
 		return console.Error("StartServers() Error:%s", err.Error())
 	}
-
+	//Start WebSocket Server only if ws is not null
 	if LocalHost.WSUrl != "" {
 		err = startWSServer()
 		if err != nil {
@@ -75,16 +77,17 @@ func StartServers() error {
 //startTCPServer Start the tcp server
 func startTCPServer() error {
 	console.Log("startTCPServer() for LocalHost.TCPURL:%s", LocalHost.TCPUrl)
-
+	//Make TCPServer Listen on the TCPURL
 	tcpServer, err := gotalk.Listen("tcp", LocalHost.TCPUrl)
 	if err != nil {
 		return console.Error("startTCPServer() Error:%s", err.Error())
 	}
-
+	//Set echo as default service in all TCPServers
 	AddLocalService("echo", echoHandler)
-
+	AddLocalService("addr", addrHandler)
+	//Attach Handlers to TCPServer's Handlers
 	tcpServer.Handlers = ServiceHandlers
-
+	//Start Accepting Connections
 	go tcpServer.Accept()
 	return nil
 }
@@ -93,7 +96,7 @@ func startTCPServer() error {
 //[NOT READY]
 func startWSServer() error {
 	console.Log("host.go::startWSServer() for LocalHost.WSURL:%s", LocalHost.WSUrl)
-
+	//Start only if ws url is not nil
 	if LocalHost.WSUrl != "" {
 		wsServer = gotalk.WebSocketHandler()
 		wsServer.Handlers = ServiceHandlers
@@ -112,6 +115,13 @@ func startWSServer() error {
 	}
 	return nil
 }
+
+//echoHandler Default Handler in All Servers to perform echo
 func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	return payload, nil
+}
+
+//addrHandler Default Handler in All Servers to sendback address
+func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	return []byte(s.Addr()), nil
 }

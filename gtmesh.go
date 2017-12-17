@@ -12,7 +12,7 @@ func BufferRequest(serviceName string, payLoad []byte) ([]byte, error) {
 	}
 	//Find where the service is located
 	if ServiceStore[serviceName] == nil {
-		return nil, console.Error("BufferRequest(serviceName:%s,payLoad:%s) Error: serviceName cannot be empty", serviceName, string(payLoad))
+		return nil, console.Error("BufferRequest(serviceName:%s,payLoad:%s) Error: serviceName Not Registered yet! %#v", serviceName, string(payLoad), ServiceStore)
 	}
-	return nil, nil
+	return payLoad, nil
 }
