@@ -1,6 +1,8 @@
 package gtmesh
 
 import (
+	"time"
+
 	"github.com/julianfrank/console"
 	"github.com/rsms/gotalk"
 )
@@ -18,6 +20,8 @@ var (
 	ServiceStore ServiceMap
 	//ServiceHandlers Bank of Handlers used by GoTalk
 	ServiceHandlers *gotalk.Handlers
+	//lastServiceUpdateTime
+	lastServiceUpdateTime time.Time
 )
 
 //AddLocalService add a Local Service to the map
