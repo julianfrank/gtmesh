@@ -22,6 +22,8 @@ var (
 	LocalServiceStore LocalServiceMap
 	//ServiceStore Hosts the mapping of all services in the mesh mapped to their hosts
 	ServiceStore ServiceMap
+	//ServiceHandlers Bank of Handlers used by GoTalk
+	ServiceHandlers *gotalk.Handlers
 )
 
 //AddLocalService add a Local Service to the map
@@ -35,8 +37,10 @@ func AddLocalService(service Service, handler gotalk.BufferReqHandler) error {
 	}
 	if LocalServiceStore == nil {
 		LocalServiceStore = LocalServiceMap{}
+		ServiceHandlers = gotalk.NewHandlers()
 	}
 	LocalServiceStore[service] = handler
+	ServiceHandlers.HandleBufferRequest(service.ServiceName, handler)
 
 	return AddService(service, LocalHost.TCPUrl)
 }

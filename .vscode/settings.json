@@ -29,7 +29,7 @@
         "delay": 1111
     },
     "go.testOnSave": true,
-    "go.testTimeout": "60s",
+    "go.testTimeout": "16s",
     "go.useCodeSnippetsOnFunctionSuggest": true,
     "go.useCodeSnippetsOnFunctionSuggestWithoutType": true
 }
