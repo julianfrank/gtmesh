@@ -26,6 +26,7 @@ var (
 
 //AddLocalService add a Local Service to the map
 func AddLocalService(service Service, handler gotalk.BufferReqHandler) error {
+	console.Log("service.go::AddLocalService(service:%#v,handler:%#v)", service, handler)
 	if len(service.ServiceName) == 0 {
 		return console.Error("service.go::AddLocalService(service:%#v\tError:service.ServiceName Cannot be empty", service)
 	}
@@ -42,6 +43,7 @@ func AddLocalService(service Service, handler gotalk.BufferReqHandler) error {
 
 //AddService add a service to Service Map
 func AddService(service Service, tcp string) error {
+	console.Log("service.go::AddService(service:%#v,tcp:%s)", service, tcp)
 	if len(service.ServiceName) == 0 {
 		return console.Error("service.go::AddService(service:%#v\tError:service.ServiceName Cannot be empty", service)
 	}

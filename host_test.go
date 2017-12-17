@@ -1,6 +1,8 @@
 package gtmesh
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSetLocalHost(t *testing.T) {
 	type args struct {
@@ -27,6 +29,29 @@ func TestSetLocalHost(t *testing.T) {
 				if (LocalHost.TCPUrl != tt.args.tcp) || (LocalHost.WSUrl != tt.args.ws) {
 					t.Errorf("SetLocalHost(tcp=%s,ws=%s)\tWanted:gtmesh.Host{TCPurl:%s,WSurl:%s}\tGot:%#v", tt.args.tcp, tt.args.ws, tt.args.tcp, tt.args.ws, LocalHost)
 				}
+			}
+		})
+	}
+}
+
+func TestStartServers(t *testing.T) {
+	type args struct {
+		host Host
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{"none", args{Host{TCPUrl: "", WSUrl: ""}}, true},
+		{"emptyTCP", args{Host{TCPUrl: "", WSUrl: "WSUrl"}}, true},
+		{"emptyWS", args{Host{TCPUrl: "TCPUrl", WSUrl: ""}}, false},
+		{"both", args{Host{TCPUrl: "TCPUrl", WSUrl: "WSUrl"}}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := StartServers(tt.args.host); (err != nil) != tt.wantErr {
+				t.Errorf("StartServers() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
