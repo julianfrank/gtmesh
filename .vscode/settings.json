@@ -1,2 +1,35 @@
 {
+    "git.ignoreMissingGitWarning": true,
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "editor.renderWhitespace": "boundary",
+    "editor.wordWrap": "bounded",
+    "go.editorContextMenuCommands": {
+        "toggleTestFile": true,
+        "addTags": true,
+        "removeTags": false,
+        "testAtCursor": true,
+        "testFile": true,
+        "testPackage": true,
+        "generateTestForFunction": true,
+        "generateTestForFile": true,
+        "generateTestForPackage": false,
+        "addImport": true,
+        "testCoverage": true,
+        "playground": true
+    },
+    "go.enableCodeLens": {
+        "references": false,
+        "runtest": true
+    },
+    "go.liveErrors": {
+        "enabled": true,
+        "delay": 1111
+    },
+    "go.testOnSave": true,
+    "go.testTimeout": "60s",
+    "go.useCodeSnippetsOnFunctionSuggest": true,
+    "go.useCodeSnippetsOnFunctionSuggestWithoutType": true
 }

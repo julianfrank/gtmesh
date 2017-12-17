@@ -4,6 +4,12 @@ import (
 	"github.com/julianfrank/console"
 )
 
+//Host host struct
+type Host struct {
+	TCPUrl string `json:"tcp_url"`
+	WSUrl  string `json:"ws_url,omitempty"`
+}
+
 //SetLocalHost Setup Local Host Details. must perform this before any other operation
 func SetLocalHost(tcp string, ws string) error {
 	console.Log("host.go::SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
