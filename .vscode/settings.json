@@ -28,7 +28,7 @@
         "enabled": true,
         "delay": 1111
     },
-    "go.testOnSave": true,
+    "go.testOnSave": false,
     "go.testTimeout": "16s",
     "go.useCodeSnippetsOnFunctionSuggest": true,
     "go.useCodeSnippetsOnFunctionSuggestWithoutType": true
