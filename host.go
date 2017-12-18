@@ -67,7 +67,7 @@ func (node *Node) StartTCPServer() error {
 	return nil
 }
 
-//StartTCPServer Start the tcp server
+//StartWSServer Start the tcp server
 //[NOT READY]
 func (node *Node) StartWSServer() error {
 	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)

@@ -24,7 +24,7 @@ func TestAddLocalService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := AddLocalService(tt.args.service, tt.args.handler)
+			err := testNode.AddLocalService(tt.args.service, tt.args.handler)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddLocalService() error = %v, wantErr %v", err, tt.wantErr)
 			}

@@ -12,8 +12,7 @@ func TestBufferRequest(t *testing.T) {
 	}
 
 	//Setup before test
-	SetLocalHost("tcp://localhost:7072", "")
-	StartServers()
+	testNode.SetLocalHost("tcp://localhost:7072", "")
 	// Setup finished here
 
 	tests := []struct {
