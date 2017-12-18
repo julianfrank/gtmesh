@@ -9,6 +9,7 @@ import (
 func main() {
 	console.Log("Starting Server A")
 	serverA := gtmesh.GetNode("ServerA")
-
+	serverA.SetLocalHost("tcp://localhost:7070", "")
+	serverA.StartTCPServer()
 	console.Log("%#v", serverA)
 }

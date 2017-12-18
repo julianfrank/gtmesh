@@ -4,11 +4,16 @@ import (
 	"time"
 
 	"github.com/julianfrank/console"
+	"github.com/rsms/gotalk"
 )
 
 //Node Base Object holding the Mesh for each Logical Server
 type Node struct {
 	Name string
+	//LocalHost The TCP/WS Name of the Local Host
+	LocalHost Host
+	tcpServer *gotalk.Server
+	wsServer  *gotalk.WebSocketServer
 }
 
 //GetNode Get a Fresh Instance of the GTMesh Node

@@ -14,16 +14,9 @@ type Host struct {
 	WSUrl  string `json:"ws_url,omitempty"`
 }
 
-var (
-	//LocalHost The TCP/WS Name of the Local Host
-	LocalHost Host
-	tcpServer *gotalk.Server
-	wsServer  *gotalk.WebSocketServer
-)
-
 //SetLocalHost Setup Local Host Details. must perform this before any other operation
-func SetLocalHost(tcp string, ws string) error {
-	console.Log("host.go::SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
+func (node *Node) SetLocalHost(tcp string, ws string) error {
+	console.Log("host.go::Node.SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
 	//Sanitary Check
 	if len(tcp) == 0 {
 		return console.Error("TCP Cannot be empty")
@@ -47,68 +40,50 @@ func SetLocalHost(tcp string, ws string) error {
 		if temptcp.Port() == tempws.Port() {
 			return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: Port cannot be the same", tcp, ws)
 		}
-		LocalHost = Host{TCPUrl: temptcp.Host, WSUrl: tempws.Host}
+		node.LocalHost = Host{TCPUrl: temptcp.Host, WSUrl: tempws.Host}
 	} else {
-		LocalHost = Host{TCPUrl: temptcp.Host, WSUrl: ""}
+		node.LocalHost = Host{TCPUrl: temptcp.Host, WSUrl: ""}
 	}
 
 	return nil
 }
 
-//StartServers Start the tCP and WebSocket Servers
-func StartServers() error {
-	console.Log("host.go::StartServers()")
-	//Start TCP Server
-	err := startTCPServer()
-	if err != nil {
-		return console.Error("StartServers() Error:%s", err.Error())
-	}
-	//Start WebSocket Server only if ws is not null
-	if LocalHost.WSUrl != "" {
-		err = startWSServer()
-		if err != nil {
-			return console.Error("StartServers() Error:%s", err.Error())
-		}
-	}
-
-	return nil
-}
-
-//startTCPServer Start the tcp server
-func startTCPServer() error {
-	console.Log("startTCPServer() for LocalHost.TCPURL:%s", LocalHost.TCPUrl)
+//StartTCPServer Start the tcp server
+func (node *Node) StartTCPServer() error {
+	console.Log("StartTCPServer() for LocalHost.TCPURL:%s", node.LocalHost.TCPUrl)
 	//Make TCPServer Listen on the TCPURL
-	tcpServer, err := gotalk.Listen("tcp", LocalHost.TCPUrl)
+	tcpServer, err := gotalk.Listen("tcp", node.LocalHost.TCPUrl)
 	if err != nil {
-		return console.Error("startTCPServer() Error:%s", err.Error())
+		return console.Error("StartTCPServer() Error:%s", err.Error())
 	}
 	//Set echo as default service in all TCPServers
-	AddLocalService("echo", echoHandler)
-	AddLocalService("addr", addrHandler)
+	node.AddLocalService("echo", echoHandler)
+	node.AddLocalService("addr", addrHandler)
 	//Attach Handlers to TCPServer's Handlers
 	tcpServer.Handlers = ServiceHandlers
 	//Start Accepting Connections
-	go tcpServer.Accept()
+	node.tcpServer = tcpServer
+	go node.tcpServer.Accept()
 	return nil
 }
 
-//startTCPServer Start the tcp server
+//StartTCPServer Start the tcp server
 //[NOT READY]
-func startWSServer() error {
-	console.Log("host.go::startWSServer() for LocalHost.WSURL:%s", LocalHost.WSUrl)
+func (node *Node) StartWSServer() error {
+	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)
 	//Start only if ws url is not nil
-	if LocalHost.WSUrl != "" {
-		wsServer = gotalk.WebSocketHandler()
-		wsServer.Handlers = ServiceHandlers
+	if node.LocalHost.WSUrl != "" {
+		node.wsServer = gotalk.WebSocketHandler()
+		node.wsServer.Handlers = ServiceHandlers
 		//wsServer.OnAccept = onAccept
-		http.Handle("/gotalk/", wsServer)
+		http.Handle("/gotalk/", node.wsServer)
 		//http.Handle("/", http.FileServer(http.Dir(".")))
 
 		//[TODO]This is NOT the right way to do this...Need to rework!
 		go func() {
-			err := http.ListenAndServe(LocalHost.WSUrl, nil)
+			err := http.ListenAndServe(node.LocalHost.WSUrl, nil)
 			if err != nil {
-				console.Error("startWSServer() with LocalHost.WSUrl=%s has Error:%s", LocalHost.WSUrl, err.Error())
+				console.Error("StartWSServer() with node.LocalHost.WSUrl=%s has Error:%s", node.LocalHost.WSUrl, err.Error())
 			}
 		}()
 
