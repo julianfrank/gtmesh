@@ -67,7 +67,7 @@ func TestNode_AddService(t *testing.T) {
 
 			if err == nil {
 				found := false
-				for _, host := range ServiceStore[tt.args.service] {
+				for _, host := range testNode.ServiceStore[tt.args.service] {
 					if host == tt.args.tcp {
 						found = true
 					}
@@ -93,18 +93,27 @@ func TestNode_BufferRequest(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-	// TODO: Add test cases.
+		{"no service and data", &testNode, args{serviceName: "", payLoad: []byte{}}, []byte{}, true},
+		{"echo but no data", &testNode, args{serviceName: "echo", payLoad: []byte{}}, []byte{}, false},
+		{"unregistered service", &testNode, args{serviceName: "unknown", payLoad: []byte{}}, []byte{}, true},
+		{"echo with data", &testNode, args{serviceName: "echo", payLoad: []byte("testEcho")}, []byte("testEcho"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			testNode.SetLocalHost("tcp://localhost:7070", "")
+			testNode.StartTCPServer()
+
 			got, err := tt.node.BufferRequest(tt.args.serviceName, tt.args.payLoad)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Node.BufferRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Node.BufferRequest() = %v, want %v", got, tt.want)
+			if (err == nil && len(tt.args.payLoad) != 0) && (!reflect.DeepEqual(got, tt.want)) {
+				t.Errorf("BufferRequest() = %v, want %v", got, tt.want)
 			}
+
 		})
 	}
 }
