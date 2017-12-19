@@ -52,13 +52,31 @@ func TestNode_AddService(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-	// TODO: Add test cases.
+		{"empty service.ServiceName", &testNode, args{service: "", tcp: "x"}, true},
+		{"empty tcp", &testNode, args{service: "x", tcp: ""}, true},
+		{"x,tcp", &testNode, args{service: "x", tcp: "tcp"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.node.AddService(tt.args.service, tt.args.tcp); (err != nil) != tt.wantErr {
+
+			err := tt.node.AddService(tt.args.service, tt.args.tcp)
+
+			if (err != nil) != tt.wantErr {
 				t.Errorf("Node.AddService() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			if err == nil {
+				found := false
+				for _, host := range ServiceStore[tt.args.service] {
+					if host == tt.args.tcp {
+						found = true
+					}
+				}
+				if !found {
+					t.Errorf("AddService(service:%#v,tcp:%s) Error:tcp not stored in ServiceStore", tt.args.service, tt.args.tcp)
+				}
+			}
+
 		})
 	}
 }
