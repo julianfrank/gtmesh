@@ -63,7 +63,9 @@ func (node *Node) StartTCPServer() error {
 	tcpServer.Handlers = node.ServiceHandlers
 	//Start Accepting Connections
 	node.tcpServer = tcpServer
+
 	go node.tcpServer.Accept()
+
 	return nil
 }
 
@@ -93,10 +95,18 @@ func (node *Node) StartWSServer() error {
 
 //echoHandler Default Handler in All Servers to perform echo
 func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::echoHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 	return payload, nil
 }
 
 //addrHandler Default Handler in All Servers to sendback address
 func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::addrHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 	return []byte(s.Addr()), nil
+}
+
+//AddPeer Add a New Peer to this Node
+func (node *Node) AddPeer(peerURLString string) error {
+	console.Log("host.go::Node.addPeer(peerURLString: %s)", peerURLString)
+	return nil
 }

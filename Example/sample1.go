@@ -11,5 +11,15 @@ func main() {
 	serverA := gtmesh.GetNode("ServerA")
 	serverA.SetLocalHost("tcp://localhost:7070", "")
 	serverA.StartTCPServer()
-	console.Log("%#v", serverA)
+	console.Log("serverA %#v", serverA)
+
+	console.Log("Starting Server B")
+	serverB := gtmesh.GetNode("ServerB")
+	serverB.SetLocalHost("tcp://localhost:7071", "")
+	serverB.StartTCPServer()
+	console.Log("serverB %#v", serverB)
+
+	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
+	serverA.AddPeer(serverB.LocalHost.TCPUrl)
+	console.Log("serverA %#v", serverA)
 }
