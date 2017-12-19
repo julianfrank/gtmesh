@@ -60,7 +60,7 @@ func (node *Node) StartTCPServer() error {
 	node.AddLocalService("echo", echoHandler)
 	node.AddLocalService("addr", addrHandler)
 	//Attach Handlers to TCPServer's Handlers
-	tcpServer.Handlers = ServiceHandlers
+	tcpServer.Handlers = node.ServiceHandlers
 	//Start Accepting Connections
 	node.tcpServer = tcpServer
 	go node.tcpServer.Accept()
@@ -74,7 +74,7 @@ func (node *Node) StartWSServer() error {
 	//Start only if ws url is not nil
 	if node.LocalHost.WSUrl != "" {
 		node.wsServer = gotalk.WebSocketHandler()
-		node.wsServer.Handlers = ServiceHandlers
+		node.wsServer.Handlers = node.ServiceHandlers
 		//wsServer.OnAccept = onAccept
 		http.Handle("/gotalk/", node.wsServer)
 		//http.Handle("/", http.FileServer(http.Dir(".")))
