@@ -16,29 +16,29 @@ type Host struct {
 
 //SetLocalHost Setup Local Host Details. must perform this before any other operation
 func (node *Node) SetLocalHost(tcp string, ws string) error {
-	console.Log("host.go::Node.SetLocalHost(tcp:%s,ws:%s)", tcp, ws)
+	console.Log("host.go::Node.SetLocalHost(tcp: %s,ws: %s)", tcp, ws)
 	//Sanitary Check
 	if len(tcp) == 0 {
 		return console.Error("TCP Cannot be empty")
 	}
 	temptcp, err := url.ParseRequestURI(tcp)
 	if err != nil {
-		return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: tcp has Bad Format\t%s", tcp, ws, err.Error())
+		return console.Error("SetLocalHost(tcp: %s,ws: %s) Error: tcp has Bad Format\t%s", tcp, ws, err.Error())
 	}
 	if temptcp.Scheme != "tcp" || temptcp.Host == "" || temptcp.Port() == "" {
-		return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: tcp has Bad Format", tcp, ws)
+		return console.Error("SetLocalHost(tcp: %s,ws: %s) Error: tcp has Bad Format", tcp, ws)
 	}
 	//Check ws only if not null...WebSocket is optional
 	if ws != "" {
 		tempws, err := url.ParseRequestURI(ws)
 		if err != nil {
-			return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: ws has Bad Format\t%s", tcp, ws, err.Error())
+			return console.Error("SetLocalHost(tcp: %s,ws: %s) Error: ws has Bad Format\t%s", tcp, ws, err.Error())
 		}
 		if tempws.Scheme != "ws" || tempws.Host == "" || tempws.Port() == "" {
-			return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: ws has Bad Format", tcp, ws)
+			return console.Error("SetLocalHost(tcp: %s,ws: %s) Error: ws has Bad Format", tcp, ws)
 		}
 		if temptcp.Port() == tempws.Port() {
-			return console.Error("SetLocalHost(tcp:%s,ws:%s) Error: Port cannot be the same", tcp, ws)
+			return console.Error("SetLocalHost(tcp: %s,ws: %s) Error: Port cannot be the same", tcp, ws)
 		}
 		node.LocalHost = Host{TCPUrl: temptcp.Host, WSUrl: tempws.Host}
 	} else {

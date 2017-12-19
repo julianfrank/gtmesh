@@ -23,7 +23,7 @@ func TestNode_SetLocalHost(t *testing.T) {
 		wantErr bool
 	}{
 		{"empty tcp,ws", &testNode, args{"", ""}, true},
-		{"bad TCP and empty WS", &testNode, args{"badtcp", ""}, true},
+		{"bad TCP and empty WS", &testNode, args{"badtcp://localhost:7070", ""}, true},
 		{"valid TCP and empty WS", &testNode, args{"tcp://localhost:7070", ""}, false},
 		{"valid TCP and bad WS", &testNode, args{"tcp://localhost:7070", "badws"}, true},
 		{"valid TCP and WS but same port", &testNode, args{"tcp://localhost:7070", "ws://localhost:7070"}, true},
