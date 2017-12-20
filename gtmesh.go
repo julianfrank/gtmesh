@@ -25,6 +25,8 @@ type Node struct {
 	ServiceHandlers *gotalk.Handlers
 	//lastServiceUpdateTime in UTC Time Zone Pls
 	lastServiceUpdateTime time.Time
+	//Convergence Window
+	ConvergenceWindow time.Duration
 }
 
 var localNode *Node
@@ -37,5 +39,8 @@ func GetNode(nodeName string) *Node {
 	} else {
 		localNode = &Node{Name: nodeName}
 	}
+
+	localNode.ConvergenceWindow = 1 * time.Millisecond
+
 	return localNode
 }

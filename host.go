@@ -146,9 +146,10 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	localSS := localNode.ServiceStore
 	remoteSS := remoteMap.Map
 	console.Log("\n\nlocalSS:%+v\nremoteSS:%+v\n", localSS, remoteSS)
-	localST := localNode.lastServiceUpdateTime
-	remoteST := remoteMap.LastUpdate
+	localST := localNode.lastServiceUpdateTime.Round(localNode.ConvergenceWindow)
+	remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
 	console.Log("\n\nlocalST:%+v\nremoteST:%+v\n", localST, remoteST)
+	console.Log("Diff:%s Window:%s", remoteST.Sub(localST), localNode.ConvergenceWindow)
 
 	switch {
 	case localST.Equal(remoteST):
@@ -156,10 +157,10 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 		return nil, nil
 
 	case localST.After(remoteST):
-		console.Log("LocalST > remoteST")
+		console.Log("LocalST > remoteST %s", localST.Sub(remoteST))
 
 	case localST.Before(remoteST):
-		console.Log("LocalST < remoteST")
+		console.Log("LocalST < remoteST %s", remoteST.Sub(localST))
 	}
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
