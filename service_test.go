@@ -18,9 +18,9 @@ func TestNode_AddLocalService(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"empty service.ServiceName", &testNode, args{service: "", handler: echoHandler}, true},
-		{"empty handler", &testNode, args{service: "x", handler: nil}, true},
-		{"x,bufferHandler", &testNode, args{service: "x", handler: echoHandler}, false},
+		{"empty service.ServiceName", testNode, args{service: "", handler: echoHandler}, true},
+		{"empty handler", testNode, args{service: "x", handler: nil}, true},
+		{"x,bufferHandler", testNode, args{service: "x", handler: echoHandler}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -52,9 +52,9 @@ func TestNode_AddService(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"empty service.ServiceName", &testNode, args{service: "", tcp: "x"}, true},
-		{"empty tcp", &testNode, args{service: "x", tcp: ""}, true},
-		{"x,tcp", &testNode, args{service: "x", tcp: "tcp"}, false},
+		{"empty service.ServiceName", testNode, args{service: "", tcp: "x"}, true},
+		{"empty tcp", testNode, args{service: "x", tcp: ""}, true},
+		{"x,tcp", testNode, args{service: "x", tcp: "tcp"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -93,15 +93,15 @@ func TestNode_BufferRequest(t *testing.T) {
 		want    []byte
 		wantErr bool
 	}{
-		{"no service and data", &testNode, args{serviceName: "", payLoad: []byte{}}, []byte{}, true},
-		{"echo but no data", &testNode, args{serviceName: "echo", payLoad: []byte{}}, []byte{}, false},
-		{"unregistered service", &testNode, args{serviceName: "unknown", payLoad: []byte{}}, []byte{}, true},
-		{"echo with data", &testNode, args{serviceName: "echo", payLoad: []byte("testEcho")}, []byte("testEcho"), false},
+		{"no service and data", testNode, args{serviceName: "", payLoad: []byte{}}, []byte{}, true},
+		{"echo but no data", testNode, args{serviceName: "sys.echo", payLoad: []byte{}}, []byte{}, false},
+		{"unregistered service", testNode, args{serviceName: "unknown", payLoad: []byte{}}, []byte{}, true},
+		{"echo with data", testNode, args{serviceName: "sys.echo", payLoad: []byte("testEcho")}, []byte("testEcho"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			testNode.SetLocalHost("tcp://localhost:7070", "")
+			testNode.SetLocalHost("tcp://localhost:7073", "")
 			testNode.StartTCPServer()
 
 			got, err := tt.node.BufferRequest(tt.args.serviceName, tt.args.payLoad)

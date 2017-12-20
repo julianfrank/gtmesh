@@ -27,11 +27,15 @@ type Node struct {
 	lastServiceUpdateTime time.Time
 }
 
+var localNode *Node
+
 //GetNode Get a Fresh Instance of the GTMesh Node
-func GetNode(nodeName string) Node {
+func GetNode(nodeName string) *Node {
 	console.Log("gtmesh.go::GetNode(nodeName:%s)", nodeName)
 	if nodeName == "" {
-		return Node{Name: time.Now().Format("06JanMon150405")} //Generate a generic time based name for the node
+		localNode = &Node{Name: time.Now().Format("06JanMon150405")} //Generate a generic time based name for the node
+	} else {
+		localNode = &Node{Name: nodeName}
 	}
-	return Node{Name: nodeName}
+	return localNode
 }

@@ -74,30 +74,6 @@ func (node *Node) StartTCPServer() error {
 	return nil
 }
 
-//StartWSServer Start the tcp server
-//[WARNING : NOT READY]
-func (node *Node) StartWSServer() error {
-	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)
-	//Start only if ws url is not nil
-	if node.LocalHost.WSUrl != "" {
-		node.wsServer = gotalk.WebSocketHandler()
-		node.wsServer.Handlers = node.ServiceHandlers
-		//wsServer.OnAccept = onAccept
-		http.Handle("/gotalk/", node.wsServer)
-		//http.Handle("/", http.FileServer(http.Dir(".")))
-
-		//[TODO]This is NOT the right way to do this...Need to rework!
-		go func() {
-			err := http.ListenAndServe(node.LocalHost.WSUrl, nil)
-			if err != nil {
-				console.Error("StartWSServer() with node.LocalHost.WSUrl=%s has Error:%s", node.LocalHost.WSUrl, err.Error())
-			}
-		}()
-
-	}
-	return nil
-}
-
 //echoHandler Default Handler in All Servers to perform echo
 func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::echoHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
@@ -141,6 +117,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 	console.Log("\ns:%+v\nframe:%+v", s, frame)
 
 	//Attach Standard Utilities to Connection
+	s.UserData = node.Name
 	//[TBD]
 
 	// Invoke SyncMap with local map as seed
@@ -157,12 +134,119 @@ func (node *Node) AddPeer(peerURLString string) error {
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::syncMapHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 
-	var remoteMap ServiceMap
+	//Retreive the syncMap from the payload
+	var remoteMap syncMap
 	err := json.Unmarshal(payload, &remoteMap)
 	if err != nil {
 		console.Log("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
 	}
 	console.Log("remoteMap:\t%+v", remoteMap)
 
+	//Sync Up with local ServiceMaps
+	localSS := localNode.ServiceStore
+	remoteSS := remoteMap.Map
+	console.Log("\n\nlocalSS:%+v\nremoteSS:%+v\n", localSS, remoteSS)
+	localST := localNode.lastServiceUpdateTime
+	remoteST := remoteMap.LastUpdate
+	console.Log("\n\nlocalST:%+v\nremoteST:%+v\n", localST, remoteST)
+
+	switch {
+	case localST.Equal(remoteST):
+		console.Log("LocalST == remoteST")
+		return nil, nil
+
+	case localST.After(remoteST):
+		console.Log("LocalST > remoteST")
+
+	case localST.Before(remoteST):
+		console.Log("LocalST < remoteST")
+	}
+
+	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
+
+	//Initiate Sync with identified Hosts as a separate GoRoutine
+
+	//Respond with Updated Map if new else just send nil
+
 	return []byte("syncMap"), nil
+}
+
+/* Future Stuff - Dont Bother Right Now
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ */
+
+//StartWSServer Start the tcp server
+//[WARNING : NOT READY]
+func (node *Node) StartWSServer() error {
+	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)
+	//Start only if ws url is not nil
+	if node.LocalHost.WSUrl != "" {
+		node.wsServer = gotalk.WebSocketHandler()
+		node.wsServer.Handlers = node.ServiceHandlers
+		//wsServer.OnAccept = onAccept
+		http.Handle("/gotalk/", node.wsServer)
+		//http.Handle("/", http.FileServer(http.Dir(".")))
+
+		//[TODO]This is NOT the right way to do this...Need to rework!
+		go func() {
+			err := http.ListenAndServe(node.LocalHost.WSUrl, nil)
+			if err != nil {
+				console.Error("StartWSServer() with node.LocalHost.WSUrl=%s has Error:%s", node.LocalHost.WSUrl, err.Error())
+			}
+		}()
+
+	}
+	return nil
 }

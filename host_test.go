@@ -22,12 +22,12 @@ func TestNode_SetLocalHost(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"empty tcp,ws", &testNode, args{"", ""}, true},
-		{"bad TCP and empty WS", &testNode, args{"badtcp://localhost:7070", ""}, true},
-		{"valid TCP and empty WS", &testNode, args{"tcp://localhost:7070", ""}, false},
-		{"valid TCP and bad WS", &testNode, args{"tcp://localhost:7070", "badws"}, true},
-		{"valid TCP and WS but same port", &testNode, args{"tcp://localhost:7070", "ws://localhost:7070"}, true},
-		{"valid TCP and WS & different ports", &testNode, args{"tcp://localhost:7070", "ws://localhost:7071"}, false},
+		{"empty tcp,ws", testNode, args{"", ""}, true},
+		{"bad TCP and empty WS", testNode, args{"badtcp://localhost:7070", ""}, true},
+		{"valid TCP and empty WS", testNode, args{"tcp://localhost:7070", ""}, false},
+		{"valid TCP and bad WS", testNode, args{"tcp://localhost:7070", "badws"}, true},
+		{"valid TCP and WS but same port", testNode, args{"tcp://localhost:7070", "ws://localhost:7070"}, true},
+		{"valid TCP and WS & different ports", testNode, args{"tcp://localhost:7070", "ws://localhost:7071"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,7 +53,7 @@ func TestNode_StartTCPServer(t *testing.T) {
 		node    *Node
 		wantErr bool
 	}{
-		{"-", &testNode, false},
+		{"-", testNode, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -70,7 +70,7 @@ func TestNode_StartWSServer(t *testing.T) {
 		node    *Node
 		wantErr bool
 	}{
-		{"-", &testNode, false},
+		{"-", testNode, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
