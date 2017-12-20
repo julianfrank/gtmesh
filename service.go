@@ -1,6 +1,8 @@
 package gtmesh
 
 import (
+	"time"
+
 	"github.com/julianfrank/console"
 	"github.com/rsms/gotalk"
 )
@@ -53,12 +55,14 @@ func (node *Node) AddService(service string, tcp string) error {
 	}
 
 	node.ServiceStore[service] = append(node.ServiceStore[service], tcp)
+	node.lastServiceUpdateTime = time.Now().UTC()
 
 	return nil
 }
 
 //BufferRequest Request for a Buffer/[]byte based service
 func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, error) {
+	console.Log("service.go::BufferRequest(serviceName: %s,payload:%s)", serviceName, string(payLoad))
 	//Basic Sanity Check
 	if len(serviceName) == 0 {
 		return nil, console.Error("BufferRequest(serviceName:%s,payLoad:%s) Error: serviceName cannot be empty", serviceName, string(payLoad))

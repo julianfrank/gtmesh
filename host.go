@@ -1,8 +1,10 @@
 package gtmesh
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/julianfrank/console"
 	"github.com/rsms/gotalk"
@@ -57,10 +59,13 @@ func (node *Node) StartTCPServer() error {
 		return console.Error("StartTCPServer() Error:%s", err.Error())
 	}
 	//Set echo as default service in all TCPServers
-	node.AddLocalService("echo", echoHandler)
-	node.AddLocalService("addr", addrHandler)
+	node.AddLocalService("sys.echo", echoHandler)
+	node.AddLocalService("sys.addr", addrHandler)
+	node.AddLocalService("sys.syncmap", syncMapHandler)
+
 	//Attach Handlers to TCPServer's Handlers
 	tcpServer.Handlers = node.ServiceHandlers
+
 	//Start Accepting Connections
 	node.tcpServer = tcpServer
 
@@ -70,7 +75,7 @@ func (node *Node) StartTCPServer() error {
 }
 
 //StartWSServer Start the tcp server
-//[NOT READY]
+//[WARNING : NOT READY]
 func (node *Node) StartWSServer() error {
 	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)
 	//Start only if ws url is not nil
@@ -105,8 +110,59 @@ func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	return []byte(s.Addr()), nil
 }
 
+// syncMap Structure used to hold the Synchronization Frames
+type syncMap struct {
+	SourceHostName string     `json:"source_host_name"`
+	LastUpdate     time.Time  `json:"last_update"`
+	Map            ServiceMap `json:"map"`
+}
+
 //AddPeer Add a New Peer to this Node
 func (node *Node) AddPeer(peerURLString string) error {
 	console.Log("host.go::Node.addPeer(peerURLString: %s)", peerURLString)
+
+	// Build frame to send to Peer
+	frame := syncMap{
+		SourceHostName: node.Name,
+		LastUpdate:     node.lastServiceUpdateTime,
+		Map:            node.ServiceStore,
+	}
+	syncFrame, err := json.Marshal(frame)
+	if err != nil {
+		return console.Error("Node.AddPeer(peerURLString: %s)\tsyncFrame,err:=json.Marshal(frame)\tError: %s", peerURLString, err.Error())
+	}
+	console.Log("syncFrame:%s", string(syncFrame))
+
+	// Connect to Peer
+	s, err := gotalk.Connect("tcp", peerURLString)
+	if err != nil {
+		return console.Error("Node.AddPeer(peerURLString: %s)\tError: %s", peerURLString, err.Error())
+	}
+	console.Log("\ns:%+v\nframe:%+v", s, frame)
+
+	//Attach Standard Utilities to Connection
+	//[TBD]
+
+	// Invoke SyncMap with local map as seed
+	res, err := s.BufferRequest("sys.syncmap", syncFrame)
+	if err != nil {
+		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\tError: %s", syncFrame, err.Error())
+	}
+	console.Log("res:%s", string(res))
+
 	return nil
+}
+
+//syncMapHandler Default Handler in All Servers to sendback address
+func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::syncMapHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+
+	var remoteMap ServiceMap
+	err := json.Unmarshal(payload, &remoteMap)
+	if err != nil {
+		console.Log("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
+	}
+	console.Log("remoteMap:\t%+v", remoteMap)
+
+	return []byte("syncMap"), nil
 }

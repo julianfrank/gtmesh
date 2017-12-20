@@ -23,7 +23,7 @@ type Node struct {
 	ServiceStore ServiceMap
 	//ServiceHandlers Bank of Handlers used by GoTalk
 	ServiceHandlers *gotalk.Handlers
-	//lastServiceUpdateTime
+	//lastServiceUpdateTime in UTC Time Zone Pls
 	lastServiceUpdateTime time.Time
 }
 
@@ -31,7 +31,7 @@ type Node struct {
 func GetNode(nodeName string) Node {
 	console.Log("gtmesh.go::GetNode(nodeName:%s)", nodeName)
 	if nodeName == "" {
-		return Node{Name: time.Now().Format("06JanMon150405")}
+		return Node{Name: time.Now().Format("06JanMon150405")} //Generate a generic time based name for the node
 	}
 	return Node{Name: nodeName}
 }
