@@ -40,7 +40,7 @@ func GetNode(nodeName string) *Node {
 		localNode = &Node{Name: nodeName}
 	}
 
-	localNode.ConvergenceWindow = 1 * time.Millisecond
+	localNode.ConvergenceWindow = 7 * time.Millisecond // set by default. Change it anytime after GetNode is called
 
 	return localNode
 }

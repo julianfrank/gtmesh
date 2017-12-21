@@ -138,29 +138,50 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	var remoteMap syncMap
 	err := json.Unmarshal(payload, &remoteMap)
 	if err != nil {
-		console.Log("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
+		return nil, console.Error("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
 	}
 	console.Log("remoteMap:\t%+v", remoteMap)
 
 	//Sync Up with local ServiceMaps
 	localSS := localNode.ServiceStore
 	remoteSS := remoteMap.Map
-	console.Log("\n\nlocalSS:%+v\nremoteSS:%+v\n", localSS, remoteSS)
+	console.Log("localSS:%+v\nremoteSS:%+v", localSS, remoteSS)
 	localST := localNode.lastServiceUpdateTime.Round(localNode.ConvergenceWindow)
 	remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
-	console.Log("\n\nlocalST:%+v\nremoteST:%+v\n", localST, remoteST)
-	console.Log("Diff:%s Window:%s", remoteST.Sub(localST), localNode.ConvergenceWindow)
+	console.Log("localST:%+v\nremoteST:%+v", localST, remoteST)
+	diff, lgtr := timeDiff(localST, remoteST)
+	console.Log("Diff:%s %t Window:%s", diff, lgtr, localNode.ConvergenceWindow)
 
-	switch {
-	case localST.Equal(remoteST):
-		console.Log("LocalST == remoteST")
-		return nil, nil
+	frame := syncMap{
+		SourceHostName: localNode.Name,
+		LastUpdate:     time.Now(),
+		Map:            ServiceMap{},
+	}
 
-	case localST.After(remoteST):
-		console.Log("LocalST > remoteST %s", localST.Sub(remoteST))
+	//remove in final version
+	lgtr = true
+	diff = 1 * time.Second
+	//remove in final version
 
-	case localST.Before(remoteST):
-		console.Log("LocalST < remoteST %s", remoteST.Sub(localST))
+	if diff < localNode.ConvergenceWindow {
+		//Both are in Sync
+		console.Log("Maps are in Sync, current frame:%+v", frame)
+	} else if lgtr {
+		//Local is ahead of Remote
+		console.Log("Local Map is Ahead")
+		frame.Map = remoteMap.Map
+		for k, v := range localNode.ServiceStore {
+			console.Log("Local->Remote k:%+v\tv:%+v", k, v)
+			frame.Map[k] = v
+		}
+	} else {
+		//Remote is ahead of Local
+		console.Log("Remote Map is Ahead")
+		frame.Map = localNode.ServiceStore
+		for k, v := range remoteMap.Map {
+			console.Log("Remote->Local k:%+v\tv:%+v", k, v)
+			frame.Map[k] = v
+		}
 	}
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
@@ -170,6 +191,19 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//Respond with Updated Map if new else just send nil
 
 	return []byte("syncMap"), nil
+}
+
+// timeDiff Returns the Difference between t1 and t1 as a time.Duration and t1>t2 as a bool.
+// if t1==t2 then nil
+func timeDiff(t1, t2 time.Time) (time.Duration, bool) {
+	switch {
+	case t1.Equal(t2):
+		return 0, false
+	case t1.After(t2):
+		return t1.Sub(t2), true
+	default:
+		return t2.Sub(t1), false
+	}
 }
 
 /* Future Stuff - Dont Bother Right Now
