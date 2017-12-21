@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/julianfrank/console"
 	"github.com/julianfrank/gtmesh"
+	"github.com/rsms/gotalk"
 )
 
 func main() {
@@ -27,4 +28,14 @@ func main() {
 	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
 	serverA.AddPeer(serverB.LocalHost.TCPUrl)
 	console.Log("\nserverA %+v\nserverB %+v", serverA, serverB)
+}
+
+func h1svcHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::h1svcHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+	return []byte("h1svcHandler"), nil
+}
+
+func h2svcHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::h2svcHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+	return []byte("h2svcHandler"), nil
 }
