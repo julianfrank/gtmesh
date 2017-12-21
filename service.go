@@ -7,8 +7,14 @@ import (
 	"github.com/rsms/gotalk"
 )
 
+// HostDetail The Host Specific Detail is held here
+type HostDetail struct {
+	TimeStamp time.Time
+	URL       string
+}
+
 //ServiceMap map of services to hosts
-type ServiceMap map[string][]string
+type ServiceMap map[string][]HostDetail
 
 //LocalServiceMap map of Local Services
 type LocalServiceMap map[string]gotalk.BufferReqHandler
@@ -47,14 +53,15 @@ func (node *Node) AddService(service string, tcp string) error {
 	}
 	if node.ServiceStore == nil {
 		node.ServiceStore = ServiceMap{}
-		node.ServiceStore[service] = []string{}
+		node.ServiceStore[service] = []HostDetail{}
 	} else {
 		if node.ServiceStore[service] == nil {
-			node.ServiceStore[service] = []string{}
+			node.ServiceStore[service] = []HostDetail{}
 		}
 	}
 
-	node.ServiceStore[service] = append(node.ServiceStore[service], tcp)
+	newHostEntry:=HostDetail{TimeStamp:time.Now(),URL:tcp}
+	node.ServiceStore[service] = append(node.ServiceStore[service], newHostEntry)
 	node.lastServiceUpdateTime = time.Now().UTC()
 
 	return nil
@@ -74,9 +81,9 @@ func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, err
 
 	//Iterate through each host till service result is obtained
 	for _, host := range node.ServiceStore[serviceName] {
-		s, err := gotalk.Connect("tcp", host)
+		s, err := gotalk.Connect("tcp", host.URL)
 		if err != nil {
-			console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with %s and returned error %s", serviceName, payLoad, host, err.Error())
+			console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with %s and returned error %s", serviceName, payLoad, host.URL, err.Error())
 		} else {
 			return s.BufferRequest(serviceName, payLoad)
 		}

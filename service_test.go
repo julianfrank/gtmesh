@@ -68,7 +68,7 @@ func TestNode_AddService(t *testing.T) {
 			if err == nil {
 				found := false
 				for _, host := range testNode.ServiceStore[tt.args.service] {
-					if host == tt.args.tcp {
+					if host.URL == tt.args.tcp {
 						found = true
 					}
 				}
