@@ -39,17 +39,17 @@ func (node *Node) AddLocalService(service string, handler gotalk.BufferReqHandle
 	}
 	node.LocalServiceStore[service] = handler
 
-	return node.AddService(service, node.LocalHost.TCPUrl)
+	return node.addService(service, node.LocalHost.TCPUrl)
 }
 
-//AddService add a service to Service Map
-func (node *Node) AddService(service string, tcp string) error {
-	console.Log("service.go::AddService(service:%#v,tcp:%s)", service, tcp)
+//addService add a service to Service Map
+func (node *Node) addService(service string, tcp string) error {
+	console.Log("service.go::addService(service:%#v,tcp:%s)", service, tcp)
 	if len(service) == 0 {
-		return console.Error("service.go::AddService(service:%#v\tError:service.ServiceName Cannot be empty", service)
+		return console.Error("service.go::addService(service:%#v\tError:service.ServiceName Cannot be empty", service)
 	}
 	if len(tcp) == 0 {
-		return console.Error("service.go::AddService(tcp:%#v\tError:tcp Cannot be empty", tcp)
+		return console.Error("service.go::addService(tcp:%#v\tError:tcp Cannot be empty", tcp)
 	}
 	if node.ServiceStore == nil {
 		node.ServiceStore = ServiceMap{}
@@ -60,8 +60,9 @@ func (node *Node) AddService(service string, tcp string) error {
 		}
 	}
 
-	newHostEntry:=HostDetail{TimeStamp:time.Now(),URL:tcp}
+	newHostEntry := HostDetail{TimeStamp: time.Now(), URL: tcp}
 	node.ServiceStore[service] = append(node.ServiceStore[service], newHostEntry)
+
 	node.lastServiceUpdateTime = time.Now().UTC()
 
 	return nil

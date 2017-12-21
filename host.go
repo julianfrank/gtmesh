@@ -144,15 +144,15 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	if err != nil {
 		return nil, console.Error("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
 	}
-	console.Log("remoteMap:\t%+v", remoteMap)
+	//console.Log("remoteMap:\t%+v", remoteMap)
 
 	//Sync Up with local ServiceMaps
-	localSS := localNode.ServiceStore
-	remoteSS := remoteMap.Map
-	console.Log("localSS:%+v\tremoteSS:%+v", localSS, remoteSS)
+	//localSS := localNode.ServiceStore
+	//remoteSS := remoteMap.Map
+	//console.Log("localSS:%+v\tremoteSS:%+v", localSS, remoteSS)
 	localST := localNode.lastServiceUpdateTime.Round(localNode.ConvergenceWindow)
 	remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
-	console.Log("localST:%+v\tremoteST:%+v", localST, remoteST)
+	//console.Log("localST:%+v\tremoteST:%+v", localST, remoteST)
 	diff := timeDiff(localST, remoteST)
 	console.Log("Diff:%s\tWindow:%s", diff, localNode.ConvergenceWindow)
 
@@ -174,9 +174,12 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 		console.Log("Maps are out of Sync...Sync Needed")
 		frame.Map = remoteMap.Map
 		for svc, v := range localNode.ServiceStore {
+			if frame.Map[svc] == nil {
+				frame.Map[svc] = []HostDetail{}
+			}
+			console.Log("frame\t%+v",frame.Map[svc])
 			for _, hd := range v {
 				console.Log("svc:%s\thd:%+v", svc, hd)
-
 			}
 
 		}

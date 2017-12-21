@@ -41,7 +41,7 @@ func TestNode_AddLocalService(t *testing.T) {
 	}
 }
 
-func TestNode_AddService(t *testing.T) {
+func TestNode_addService(t *testing.T) {
 	type args struct {
 		service string
 		tcp     string
@@ -59,10 +59,10 @@ func TestNode_AddService(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			err := tt.node.AddService(tt.args.service, tt.args.tcp)
+			err := tt.node.addService(tt.args.service, tt.args.tcp)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Node.AddService() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Node.addService() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			if err == nil {
@@ -73,7 +73,7 @@ func TestNode_AddService(t *testing.T) {
 					}
 				}
 				if !found {
-					t.Errorf("AddService(service:%#v,tcp:%s) Error:tcp not stored in ServiceStore", tt.args.service, tt.args.tcp)
+					t.Errorf("addService(service:%#v,tcp:%s) Error:tcp not stored in ServiceStore", tt.args.service, tt.args.tcp)
 				}
 			}
 
