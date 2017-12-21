@@ -90,7 +90,7 @@ func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 type syncMap struct {
 	SourceHostName string     `json:"source_host_name"`
 	LastUpdate     time.Time  `json:"last_update"`
-	Map            ServiceMap `json:"map"`
+	ServiceMap     ServiceMap `json:"service_map"`
 }
 
 //AddPeer Add a New Peer to this Node
@@ -100,8 +100,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 	// Build frame to send to Peer
 	frame := syncMap{
 		SourceHostName: node.Name,
-		LastUpdate:     node.lastServiceUpdateTime,
-		Map:            node.ServiceStore,
+		ServiceMap:     node.ServiceStore,
 	}
 	syncFrame, err := json.Marshal(frame)
 	if err != nil {
@@ -150,38 +149,30 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//localSS := localNode.ServiceStore
 	//remoteSS := remoteMap.Map
 	//console.Log("localSS:%+v\tremoteSS:%+v", localSS, remoteSS)
-	localST := localNode.lastServiceUpdateTime.Round(localNode.ConvergenceWindow)
+	localST := localNode.ServiceStore.TimeStamp.Round(localNode.ConvergenceWindow)
 	remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
 	//console.Log("localST:%+v\tremoteST:%+v", localST, remoteST)
 	diff := timeDiff(localST, remoteST)
 	console.Log("Diff:%s\tWindow:%s", diff, localNode.ConvergenceWindow)
 
-	frame := syncMap{
-		SourceHostName: localNode.Name,
-		LastUpdate:     time.Now(),
-		Map:            ServiceMap{},
-	}
+	frame := remoteMap
+	frame.SourceHostName = localNode.Name
 
 	//remove in final version
 	diff = 1 * time.Second
 	//remove in final version
 
+	// Sync At  ServiceMap Level
 	if diff < localNode.ConvergenceWindow {
 		//Both are in Sync
 		console.Log("Maps are in Sync, current frame:%+v", frame)
 	} else {
-		//Local is ahead of Remote
+		//Sync At Host Details Level
 		console.Log("Maps are out of Sync...Sync Needed")
-		frame.Map = remoteMap.Map
-		for svc, v := range localNode.ServiceStore {
-			if frame.Map[svc] == nil {
-				frame.Map[svc] = []HostDetail{}
-			}
-			console.Log("frame\t%+v",frame.Map[svc])
-			for _, hd := range v {
-				console.Log("svc:%s\thd:%+v", svc, hd)
-			}
-
+		frame.ServiceMap = remoteMap.ServiceMap
+		for svc, v := range localNode.ServiceStore.Map {
+			//TBD
+			console.Log("svc:%s\tv:%+v", svc, v)
 		}
 	}
 

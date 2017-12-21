@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	console.LogMode = false
+	console.LogMode = true
 	console.Log("Starting Server A")
 	serverA := gtmesh.GetNode("ServerA")
 	serverA.SetLocalHost("tcp://localhost:7070", "")
@@ -16,7 +16,7 @@ func main() {
 	serverA.StartTCPServer()
 	//serverA.BufferRequest("sys.echo", []byte("Testing Echo from Server A"))
 	//console.Log("serverA %+v", serverA)
-
+/*
 	console.Log("Starting Server B")
 	serverB := gtmesh.GetNode("ServerB")
 	serverB.SetLocalHost("tcp://localhost:7071", "")
@@ -29,7 +29,7 @@ func main() {
 
 	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
 	serverA.AddPeer(serverB.LocalHost.TCPUrl)
-	console.Log("\nserverA %+v\nserverB %+v", serverA, serverB)
+	console.Log("\nserverA %+v\nserverB %+v", serverA, serverB)*/
 }
 
 func h1svcHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {

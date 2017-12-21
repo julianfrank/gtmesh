@@ -23,8 +23,6 @@ type Node struct {
 	ServiceStore ServiceMap
 	//ServiceHandlers Bank of Handlers used by GoTalk
 	ServiceHandlers *gotalk.Handlers
-	//lastServiceUpdateTime in UTC Time Zone Pls
-	lastServiceUpdateTime time.Time
 	//Convergence Window
 	ConvergenceWindow time.Duration
 }
