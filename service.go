@@ -7,8 +7,14 @@ import (
 	"github.com/rsms/gotalk"
 )
 
+//ServiceData Meta Data of the Host Entry
+type ServiceData struct {
+	Created time.Time
+	Deleted time.Time
+}
+
 //ServiceMap map of services to hosts
-type ServiceMap map[string]map[string]time.Time
+type ServiceMap map[string]map[string]ServiceData
 
 //LocalServiceMap map of Local Services
 type LocalServiceMap map[string]gotalk.BufferReqHandler
@@ -46,13 +52,13 @@ func (node *Node) addService(service string, tcp string) error {
 		return console.Error("service.go::addService(tcp:%#v\tError:tcp Cannot be empty", tcp)
 	}
 	if node.ServiceStore == nil { //Store Does not exist so Init
-		node.ServiceStore = make(map[string]map[string]time.Time)
-		node.ServiceStore[service] = make(map[string]time.Time)
+		node.ServiceStore = make(map[string]map[string]ServiceData)
+		node.ServiceStore[service] = make(map[string]ServiceData)
 	}
 	if node.ServiceStore[service] == nil { //Service Entry Does not Exist
-		node.ServiceStore[service] = make(map[string]time.Time)
+		node.ServiceStore[service] = make(map[string]ServiceData)
 	}
-	node.ServiceStore[service][tcp] = time.Now().UTC()
+	node.ServiceStore[service][tcp] = ServiceData{Created: time.Now().UTC()}
 	return nil
 }
 

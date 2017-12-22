@@ -139,47 +139,42 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	baseFrame := remoteMap
 	baseFrame.SourceHostName = localNode.Name
 	//Sync by parsing the remoteSS
+	console.Log("Performing Remote Map Scan")
 	for svc, hmap := range remoteSS {
 		//console.Log("svc:%s\thm:%+v", svc, hmap)
 		if localSS[svc] == nil {
-			//Local Copy for this service does not exist. No Action Needed. baseframe has the latest info
+			//Local Map does not have this service. Skip
+			console.Log("local Sync NOT Needed for service:%s", svc)
 		} else {
-			//Parse the remote hostmap
-			for host, ts := range hmap {
-				console.Log("Remote => svc:%s\thost:%s\tts:%s", svc, host, ts)
-				if lhr, ok := localSS[svc][host]; ok {
-					//Local has the host record
-					console.Log("lhr:%+v\ndiff:%s\nwindow:%s", lhr, timeDiff(lhr, ts), localNode.ConvergenceWindow)
-					//Evalueate Diff
-					//Check if less than Convergence Window
-					//If Outside then Use the latest Record
+			for h, d := range hmap {
+				console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
+				if _, ok := localSS[svc][h]; ok {
+					console.Log("local Sync Needed for %+v", localSS[svc][h])
+					//[TBD]
 				} else {
-					//Local does not have this host record. No Action Needed. baseframe has the latest info
+					//This host does not exist in local Map. Skip
+					console.Log("local Sync NOT Needed for host:%s", h)
 				}
 			}
 		}
 	}
-	//Sync by parsing the localSS
+	console.Log("Performing Local Map Scan now...")
 	for svc, hmap := range localSS {
-		//console.Log("svc:%s\thm:%+v", svc, hmap)
 		if remoteSS[svc] == nil {
-			//Remote Copy for this service does not exist. copy ASIS to baseframe
+			//Remote does not have this service...Copy
 			baseFrame.ServiceMap[svc] = hmap
-			console.Log("local map copied to remote => %+v", hmap)
+			console.Log("service %s being copied to Frame", svc)
 		} else {
-			//Parse the local hostmap
-			for host, ts := range hmap {
-				console.Log("Local => svc:%s\thost:%s\tts:%s", svc, host, ts)
-				if rhr, ok := remoteSS[svc][host]; ok {
-					//Remote has the host record
-					console.Log("rhr:%+v", rhr)
-					//Evalueate Diff
-					//Check if less than Convergence Window
-					//If Outside then Use the latest Record
+			for h, d := range hmap {
+				console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
+				if _, ok := remoteSS[svc][h]; ok {
+					//Local Map has Detail as the remote Host . Sync
+					//[TBD] Sync Logic
+					console.Log(" Sync Needed for Host:%s", h)
 				} else {
-					//Remote does not have this host record. Copy Host Details to Remote
-					baseFrame.ServiceMap[svc] = remoteSS[svc]
-					console.Log("Remote map copied to remote => %+v", hmap)
+					//Remote does not have detail about the local host map...Copy
+					baseFrame.ServiceMap[svc][h] = localSS[svc][h]
+					console.Log("Frame being Updated with Host:%s", h)
 				}
 			}
 		}
