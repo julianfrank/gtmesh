@@ -69,8 +69,7 @@ func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, err
 	}
 
 	//Iterate through each host till service result is obtained
-	hostmap := node.ServiceStore[serviceName]
-	for host := range hostmap {
+	for host := range node.ServiceStore[serviceName] {
 		s, err := gotalk.Connect("tcp", host)
 		if err != nil {
 			console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with %s and returned error %s", serviceName, payLoad, host, err.Error())
@@ -79,5 +78,5 @@ func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, err
 		}
 	}
 
-	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, payLoad, hostmap)
+	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, payLoad, node.ServiceStore[serviceName])
 }

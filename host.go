@@ -74,22 +74,9 @@ func (node *Node) StartTCPServer() error {
 	return nil
 }
 
-//echoHandler Default Handler in All Servers to perform echo
-func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
-	console.Log("host.go::echoHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
-	return payload, nil
-}
-
-//addrHandler Default Handler in All Servers to sendback address
-func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
-	console.Log("host.go::addrHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
-	return []byte(s.Addr()), nil
-}
-
 // syncMap Structure used to hold the Synchronization Frames
 type syncMap struct {
 	SourceHostName string     `json:"source_host_name"`
-	LastUpdate     time.Time  `json:"last_update"`
 	ServiceMap     ServiceMap `json:"service_map"`
 }
 
@@ -106,14 +93,13 @@ func (node *Node) AddPeer(peerURLString string) error {
 	if err != nil {
 		return console.Error("Node.AddPeer(peerURLString: %s)\tsyncFrame,err:=json.Marshal(frame)\tError: %s", peerURLString, err.Error())
 	}
-	console.Log("syncFrame:%s", string(syncFrame))
+	//console.Log("syncFrame:%s", string(syncFrame))
 
 	// Connect to Peer
 	s, err := gotalk.Connect("tcp", peerURLString)
 	if err != nil {
 		return console.Error("Node.AddPeer(peerURLString: %s)\tError: %s", peerURLString, err.Error())
 	}
-	console.Log("\ns:%+v\nframe:%+v", s, frame)
 
 	//Attach Standard Utilities to Connection
 	s.UserData = node.Name
@@ -122,7 +108,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 	// Invoke SyncMap with local map as seed
 	res, err := s.BufferRequest("sys.syncmap", syncFrame)
 	if err != nil {
-		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\tError: %s", syncFrame, err.Error())
+		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\nError: %s", syncFrame, err.Error())
 	}
 	if res != nil {
 		console.Log("Sync Happened!\tres:", string(res))
@@ -135,7 +121,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 
 //syncMapHandler Default Handler in All Servers to sendback address
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
-	console.Log("host.go::syncMapHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+	console.Log("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s)", s.Addr(), op, string(payload))
 
 	//Retreive the syncMap from the payload
 	var remoteMap syncMap
@@ -146,17 +132,59 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//console.Log("remoteMap:\t%+v", remoteMap)
 
 	//Sync Up with local ServiceMaps
-	//localSS := localNode.ServiceStore
-	//remoteSS := remoteMap.Map
-	//console.Log("localSS:%+v\tremoteSS:%+v", localSS, remoteSS)
-	//localST := localNode.ServiceStore.TimeStamp.Round(localNode.ConvergenceWindow)
-	//remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
-	//console.Log("localST:%+v\tremoteST:%+v", localST, remoteST)
-	//diff := timeDiff(localST, remoteST)
-	//console.Log("Diff:%s\tWindow:%s", diff, localNode.ConvergenceWindow)
+	localSS := localNode.ServiceStore
+	remoteSS := remoteMap.ServiceMap
+	console.Log("\nlocalSS:%+v\nremoteSS:%+v", localSS, remoteSS)
 
-	frame := remoteMap
-	frame.SourceHostName = localNode.Name
+	baseFrame := remoteMap
+	baseFrame.SourceHostName = localNode.Name
+	//Sync by parsing the remoteSS
+	for svc, hmap := range remoteSS {
+		//console.Log("svc:%s\thm:%+v", svc, hmap)
+		if localSS[svc] == nil {
+			//Local Copy for this service does not exist. No Action Needed. baseframe has the latest info
+		} else {
+			//Parse the remote hostmap
+			for host, ts := range hmap {
+				console.Log("Remote => svc:%s\thost:%s\tts:%s", svc, host, ts)
+				if lhr, ok := localSS[svc][host]; ok {
+					//Local has the host record
+					console.Log("lhr:%+v", lhr)
+					//Evalueate Diff
+					//Check if less than Convergence Window
+					//If Outside then Use the latest Record
+				} else {
+					//Local does not have this host record. No Action Needed. baseframe has the latest info
+				}
+			}
+		}
+	}
+	//Sync by parsing the localSS
+	for svc, hmap := range localSS {
+		//console.Log("svc:%s\thm:%+v", svc, hmap)
+		if remoteSS[svc] == nil {
+			//Remote Copy for this service does not exist. copy ASIS to baseframe
+			baseFrame.ServiceMap[svc] = hmap
+			console.Log("local map copied to remote => %+v", hmap)
+		} else {
+			//Parse the local hostmap
+			for host, ts := range hmap {
+				console.Log("Local => svc:%s\thost:%s\tts:%s", svc, host, ts)
+				if rhr, ok := remoteSS[svc][host]; ok {
+					//Remote has the host record
+					console.Log("rhr:%+v", rhr)
+					//Evalueate Diff
+					//Check if less than Convergence Window
+					//If Outside then Use the latest Record
+				} else {
+					//Remote does not have this host record. Copy Host Details to Remote
+					baseFrame.ServiceMap[svc] =remoteSS[svc]
+						console.Log("Remote map copied to remote => %+v", hmap)
+				}
+			}
+		}
+	}
+	console.Log("\n\nbaseFrame\n%+v",baseFrame)
 	/*
 		//remove in final version
 		diff = 1 * time.Second
@@ -196,6 +224,18 @@ func timeDiff(t1, t2 time.Time) time.Duration {
 	default:
 		return t2.Sub(t1)
 	}
+}
+
+//echoHandler Default Handler in All Servers to perform echo
+func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::echoHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+	return payload, nil
+}
+
+//addrHandler Default Handler in All Servers to sendback address
+func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
+	console.Log("host.go::addrHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
+	return []byte(s.Addr()), nil
 }
 
 /* Future Stuff - Dont Bother Right Now
