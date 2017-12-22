@@ -149,7 +149,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 				console.Log("Remote => svc:%s\thost:%s\tts:%s", svc, host, ts)
 				if lhr, ok := localSS[svc][host]; ok {
 					//Local has the host record
-					console.Log("lhr:%+v", lhr)
+					console.Log("lhr:%+v\ndiff:%s\nwindow:%s", lhr, timeDiff(lhr, ts), localNode.ConvergenceWindow)
 					//Evalueate Diff
 					//Check if less than Convergence Window
 					//If Outside then Use the latest Record
@@ -178,13 +178,13 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 					//If Outside then Use the latest Record
 				} else {
 					//Remote does not have this host record. Copy Host Details to Remote
-					baseFrame.ServiceMap[svc] =remoteSS[svc]
-						console.Log("Remote map copied to remote => %+v", hmap)
+					baseFrame.ServiceMap[svc] = remoteSS[svc]
+					console.Log("Remote map copied to remote => %+v", hmap)
 				}
 			}
 		}
 	}
-	console.Log("\n\nbaseFrame\n%+v",baseFrame)
+	console.Log("\n\nbaseFrame\n%+v", baseFrame)
 	/*
 		//remove in final version
 		diff = 1 * time.Second
