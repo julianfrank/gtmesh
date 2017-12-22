@@ -11,12 +11,14 @@ import (
 )
 
 //Host host struct
+// version : 22dec2017
 type Host struct {
 	TCPUrl string `json:"tcp_url"`
 	WSUrl  string `json:"ws_url,omitempty"`
 }
 
 //SetLocalHost Setup Local Host Details. must perform this before any other operation
+// version : 22dec2017
 func (node *Node) SetLocalHost(tcp string, ws string) error {
 	console.Log("host.go::Node.SetLocalHost(tcp: %s,ws: %s)", tcp, ws)
 	//Sanitary Check
@@ -51,6 +53,7 @@ func (node *Node) SetLocalHost(tcp string, ws string) error {
 }
 
 //StartTCPServer Start the tcp server
+// version : 22dec2017
 func (node *Node) StartTCPServer() error {
 	console.Log("StartTCPServer() for LocalHost.TCPURL:%s", node.LocalHost.TCPUrl)
 	//Make TCPServer Listen on the TCPURL
@@ -75,12 +78,14 @@ func (node *Node) StartTCPServer() error {
 }
 
 // syncMap Structure used to hold the Synchronization Frames
+// version : 22dec2017
 type syncMap struct {
 	SourceHostName string     `json:"source_host_name"`
 	ServiceMap     ServiceMap `json:"service_map"`
 }
 
 //AddPeer Add a New Peer to this Node
+// version : 22dec2017
 func (node *Node) AddPeer(peerURLString string) error {
 	console.Log("host.go::Node.addPeer(peerURLString: %s)", peerURLString)
 
@@ -111,7 +116,17 @@ func (node *Node) AddPeer(peerURLString string) error {
 		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\nError: %s", syncFrame, err.Error())
 	}
 	if res != nil {
-		console.Log("Sync Happened!\tres:", string(res))
+		console.Log("Sync Happened!\tres:%s", string(res))
+		//Retreive the syncMap from the payload
+		var remoteMap syncMap
+		err := json.Unmarshal(res, &remoteMap)
+		if err != nil {
+			return console.Error("Node.AddPeer::json.Unmarshal(payload: %s ...\tError:%s", string(res), err.Error())
+		}
+
+		//Copy synced serviceMap to Local Service Map
+		node.ServiceStore = remoteMap.ServiceMap
+
 	} else {
 		console.Log("%s Sync Returned, Result: Already in Sync\tres:%s", node.Name, string(res))
 	}
@@ -120,6 +135,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 }
 
 //syncMapHandler Default Handler in All Servers to sendback address
+// version : 22dec2017
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s)", s.Addr(), op, string(payload))
 
@@ -134,62 +150,80 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//Sync Up with local ServiceMaps
 	localSS := localNode.ServiceStore
 	remoteSS := remoteMap.ServiceMap
-	console.Log("\nlocalSS:%+v\nremoteSS:%+v", localSS, remoteSS)
+	//console.Log("\nlocalSS:%+v\nremoteSS:%+v", localSS, remoteSS)
 
 	baseFrame := remoteMap
 	baseFrame.SourceHostName = localNode.Name
 	//Sync by parsing the remoteSS
-	console.Log("Performing Remote Map Scan")
+	//console.Log("Performing Remote Map Scan")
 	for svc, hmap := range remoteSS {
 		//console.Log("svc:%s\thm:%+v", svc, hmap)
 		if localSS[svc] == nil {
 			//Local Map does not have this service. Skip
-			console.Log("local Sync NOT Needed for service:%s", svc)
+			//console.Log("local Sync NOT Needed for service:%s", svc)
 		} else {
 			for h, d := range hmap {
 				console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
 				if _, ok := localSS[svc][h]; ok {
-					console.Log("local Sync Needed for %+v", localSS[svc][h])
-					//[TBD]
+					//console.Log("local Sync Needed for %+v", localSS[svc][h])
+
+					latestState := lastState(localSS[svc][h], d)
+					latestState.Source = localNode.LocalHost.TCPUrl
+					baseFrame.ServiceMap[svc][h] = latestState
+
 				} else {
 					//This host does not exist in local Map. Skip
-					console.Log("local Sync NOT Needed for host:%s", h)
+					//console.Log("local Sync NOT Needed for host:%s", h)
 				}
 			}
 		}
 	}
-	console.Log("Performing Local Map Scan now...")
+	//console.Log("Performing Local Map Scan now...")
 	for svc, hmap := range localSS {
 		if remoteSS[svc] == nil {
 			//Remote does not have this service...Copy
 			baseFrame.ServiceMap[svc] = hmap
-			console.Log("service %s being copied to Frame", svc)
+			//console.Log("service %s being copied to Frame", svc)
 		} else {
 			for h, d := range hmap {
-				console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
+				//console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
 				if _, ok := remoteSS[svc][h]; ok {
 					//Local Map has Detail as the remote Host . Sync
-					//[TBD] Sync Logic
-					console.Log(" Sync Needed for Host:%s", h)
+
+					latestState := lastState(localSS[svc][h], d)
+					latestState.Source = localNode.LocalHost.TCPUrl
+					baseFrame.ServiceMap[svc][h] = latestState
+
+					//console.Log(" Sync Needed for Host:%s", h)
 				} else {
 					//Remote does not have detail about the local host map...Copy
 					baseFrame.ServiceMap[svc][h] = localSS[svc][h]
-					console.Log("Frame being Updated with Host:%s", h)
+					//console.Log("Frame being Updated with Host:%s", h)
 				}
 			}
 		}
 	}
-	console.Log("\n\nbaseFrame%s", prettyJSON(baseFrame))
+	//console.Log("\n\nbaseFrame%s", prettyJSON(baseFrame))
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
+	//[TBD]
 
 	//Initiate Sync with identified Hosts as a separate GoRoutine
+	//[TBD]
+
+	// Copy baseFrame to local ServiceMap
+	localNode.ServiceStore = baseFrame.ServiceMap
 
 	//Respond with Updated Map if new else just send nil
-
-	return nil, nil
+	syncFrame, err := json.Marshal(baseFrame)
+	if err != nil {
+		return nil, console.Error("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s) syncFrame, err := json.Marshal(baseFrame) Error: %s", s.Addr(), op, string(payload), err.Error())
+	}
+	return syncFrame, nil
 }
 
+// lastState Returns the Latest Object of the provides ServiceData Objects
+// Version : 22Dec2017
 func lastState(h1, h2 ServiceData) (sd ServiceData) {
 	h1t := h1.Created
 	if h1.Created.Before(h1.Deleted) {
@@ -207,6 +241,7 @@ func lastState(h1, h2 ServiceData) (sd ServiceData) {
 
 // timeDiff Returns the Difference between t1 and t1 as a time.Duration and t1>t2 as a bool.
 // if t1==t2 then nil
+// version : 21Dec2017
 func timeDiff(t1, t2 time.Time) time.Duration {
 	switch {
 	case t1.Equal(t2):
@@ -219,18 +254,21 @@ func timeDiff(t1, t2 time.Time) time.Duration {
 }
 
 //echoHandler Default Handler in All Servers to perform echo
+// version : 22dec2017
 func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::echoHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 	return payload, nil
 }
 
 //addrHandler Default Handler in All Servers to sendback address
+// version : 22dec2017
 func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::addrHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 	return []byte(s.Addr()), nil
 }
 
 //prettyJSON Return string Formated as a Pretty JSON for the givent interface{}
+// version : 22dec2017
 func prettyJSON(i interface{}) string {
 	b, _ := json.MarshalIndent(i, "|", " ")
 	return string(b)
@@ -294,6 +332,7 @@ func prettyJSON(i interface{}) string {
 
 //StartWSServer Start the tcp server
 //[WARNING : NOT READY]
+// version : 22dec2017
 func (node *Node) StartWSServer() error {
 	console.Log("host.go::StartWSServer() for LocalHost.WSURL:%s", node.LocalHost.WSUrl)
 	//Start only if ws url is not nil

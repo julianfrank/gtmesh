@@ -30,7 +30,7 @@ func main() {
 	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
 	serverA.AddPeer(serverB.LocalHost.TCPUrl)
 
-	//console.Log("\nserverA %+v\nserverB %+v", serverA, serverB)
+	console.Log("\nserverA %+v\nserverB %+v", serverA.ServiceStore, serverB.ServiceStore)
 }
 
 func h1svcHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {

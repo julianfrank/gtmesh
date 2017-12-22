@@ -8,6 +8,7 @@ import (
 )
 
 //ServiceData Meta Data of the Host Entry
+// version : 22dec2017
 type ServiceData struct {
 	Created time.Time
 	Deleted time.Time
@@ -15,12 +16,15 @@ type ServiceData struct {
 }
 
 //ServiceMap map of services to hosts
+// version : 22dec2017
 type ServiceMap map[string]map[string]ServiceData
 
 //LocalServiceMap map of Local Services
+// version : 22dec2017
 type LocalServiceMap map[string]gotalk.BufferReqHandler
 
 //AddLocalService add a Local Service to the map
+// version : 22dec2017
 func (node *Node) AddLocalService(service string, handler gotalk.BufferReqHandler) error {
 	console.Log("service.go::AddLocalService(service:%#v,handler:%#v)", service, handler)
 	if len(service) == 0 {
@@ -44,6 +48,7 @@ func (node *Node) AddLocalService(service string, handler gotalk.BufferReqHandle
 }
 
 //addService add a service to Service Map
+// version : 22dec2017
 func (node *Node) addService(service string, tcp string) error {
 	console.Log("service.go::addService(service:%#v,tcp:%s)", service, tcp)
 	if len(service) == 0 {
@@ -64,6 +69,7 @@ func (node *Node) addService(service string, tcp string) error {
 }
 
 //BufferRequest Request for a Buffer/[]byte based service
+// version : 22dec2017
 func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, error) {
 	console.Log("service.go::BufferRequest(serviceName: %s,payload:%s)", serviceName, string(payLoad))
 	//Basic Sanity Check

@@ -8,6 +8,7 @@ import (
 )
 
 //Node Base Object holding the Mesh for each Logical Server
+// version : 22dec2017
 type Node struct {
 	Name string
 	//LocalHost The TCP/WS Name of the Local Host
@@ -30,6 +31,7 @@ type Node struct {
 var localNode *Node
 
 //GetNode Get a Fresh Instance of the GTMesh Node
+// version : 22dec2017
 func GetNode(nodeName string) *Node {
 	console.Log("gtmesh.go::GetNode(nodeName:%s)", nodeName)
 	if nodeName == "" {
