@@ -179,25 +179,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 			}
 		}
 	}
-	console.Log("\n\nbaseFrame\n%+v", baseFrame)
-	/*
-		//remove in final version
-		diff = 1 * time.Second
-		//remove in final version
-
-		// Sync At  ServiceMap Level
-		if diff < localNode.ConvergenceWindow {
-			//Both are in Sync
-			console.Log("Maps are in Sync, current frame:%+v", frame)
-		} else {
-			//Sync At Host Details Level
-			console.Log("Maps are out of Sync...Sync Needed")
-			frame.ServiceMap = remoteMap.ServiceMap
-			for svc, v := range localNode.ServiceStore {
-				//TBD
-				console.Log("svc:%s\tv:%+v", svc, v)
-			}
-		}*/
+	console.Log("\n\nbaseFrame%s", prettyJSON(baseFrame))
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
 
@@ -206,6 +188,21 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//Respond with Updated Map if new else just send nil
 
 	return nil, nil
+}
+
+func lastState(h1, h2 ServiceData) (sd ServiceData) {
+	h1t := h1.Created
+	if h1.Created.Before(h1.Deleted) {
+		h1t = h1.Deleted
+	}
+	h2t := h2.Created
+	if h2.Created.Before(h2.Deleted) {
+		h2t = h2.Deleted
+	}
+	if h1t.After(h2t) {
+		return h1
+	}
+	return h2
 }
 
 // timeDiff Returns the Difference between t1 and t1 as a time.Duration and t1>t2 as a bool.
@@ -231,6 +228,12 @@ func echoHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 func addrHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::addrHandler(s.Addr(): %s,op: %s,payload: %s)", s.Addr(), op, string(payload))
 	return []byte(s.Addr()), nil
+}
+
+//prettyJSON Return string Formated as a Pretty JSON for the givent interface{}
+func prettyJSON(i interface{}) string {
+	b, _ := json.MarshalIndent(i, "|", " ")
+	return string(b)
 }
 
 /* Future Stuff - Dont Bother Right Now

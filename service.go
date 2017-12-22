@@ -11,6 +11,7 @@ import (
 type ServiceData struct {
 	Created time.Time
 	Deleted time.Time
+	Source  string
 }
 
 //ServiceMap map of services to hosts
@@ -58,7 +59,7 @@ func (node *Node) addService(service string, tcp string) error {
 	if node.ServiceStore[service] == nil { //Service Entry Does not Exist
 		node.ServiceStore[service] = make(map[string]ServiceData)
 	}
-	node.ServiceStore[service][tcp] = ServiceData{Created: time.Now().UTC()}
+	node.ServiceStore[service][tcp] = ServiceData{Created: time.Now().UTC(), Source: node.LocalHost.TCPUrl}
 	return nil
 }
 
