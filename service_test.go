@@ -66,15 +66,12 @@ func TestNode_addService(t *testing.T) {
 			}
 
 			if err == nil {
-				found := false
-				for _, host := range testNode.ServiceStore.Map[tt.args.service] {
-					if host.URL == tt.args.tcp {
-						found = true
-					}
+				if tt.node.ServiceStore[tt.args.service] == nil {
+					t.Errorf("addService(service:%s,tcp:%s) Error:service not stored in ServiceStore %#v", tt.args.service, tt.args.tcp,tt.node.ServiceStore)
+				}else if _,ok:=tt.node.ServiceStore[tt.args.service][tt.args.tcp]; !ok {
+					t.Errorf("addService(service:%s,tcp:%s) Error:tcp not stored in ServiceStore %#v", tt.args.service, tt.args.tcp,tt.node.ServiceStore)
 				}
-				if !found {
-					t.Errorf("addService(service:%#v,tcp:%s) Error:tcp not stored in ServiceStore", tt.args.service, tt.args.tcp)
-				}
+				
 			}
 
 		})

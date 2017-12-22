@@ -7,17 +7,8 @@ import (
 	"github.com/rsms/gotalk"
 )
 
-//ServiceHostMap Structure for Each Host Map in each Service
-type ServiceHostMap struct {
-	TimeStamp time.Time
-	Map       map[string]time.Time //string = host
-}
-
 //ServiceMap map of services to hosts
-type ServiceMap struct {
-	TimeStamp time.Time
-	Map       map[string]ServiceHostMap //string = service
-}
+type ServiceMap map[string]map[string]time.Time
 
 //LocalServiceMap map of Local Services
 type LocalServiceMap map[string]gotalk.BufferReqHandler
@@ -54,19 +45,14 @@ func (node *Node) addService(service string, tcp string) error {
 	if len(tcp) == 0 {
 		return console.Error("service.go::addService(tcp:%#v\tError:tcp Cannot be empty", tcp)
 	}
-	if node.ServiceStore.Map == nil { //Store Does not exist so Create
-		node.ServiceStore.Map = make(map[string]ServiceHostMap)
-		node.ServiceStore.Map[service] = ServiceHostMap{
-			TimeStamp: time.Now().UTC(),
-			Map:       make(map[string]time.Time),
-		}
+	if node.ServiceStore == nil { //Store Does not exist so Init
+		node.ServiceStore = make(map[string]map[string]time.Time)
+		node.ServiceStore[service] = make(map[string]time.Time)
 	}
-	node.ServiceStore.TimeStamp = time.Now().UTC()
-	node.ServiceStore.Map[service].TimeStamp = time.Now().UTC()
-	node.ServiceStore.Map[service].Map[tcp] = time.Now().UTC()
-	console.Log("ZZZZZZZZZZZZZZZZZZZZZZZZZz       %#v", node.ServiceStore.Map[service].TimeStamp)
-	//node.ServiceStore.Map[service].TimeStamp = time.Now().UTC()
-	//node.ServiceStore.Map[service].Map[tcp] = time.Now().UTC()
+	if node.ServiceStore[service] == nil { //Service Entry Does not Exist
+		node.ServiceStore[service] = make(map[string]time.Time)
+	}
+	node.ServiceStore[service][tcp] = time.Now().UTC()
 	return nil
 }
 
@@ -78,19 +64,20 @@ func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, err
 		return nil, console.Error("BufferRequest(serviceName:%s,payLoad:%s) Error: serviceName cannot be empty", serviceName, string(payLoad))
 	}
 	//Find where the service is located
-	/*if node.ServiceStore.Map[serviceName] == nil {
+	if node.ServiceStore[serviceName] == nil {
 		return nil, console.Error("BufferRequest(serviceName:%s,payLoad:%s) Error: serviceName Not Registered yet! %#v", serviceName, string(payLoad), node.ServiceStore)
-	}*/
+	}
 
 	//Iterate through each host till service result is obtained
-	/*for _, host := range node.ServiceStore.Map[serviceName] {
-		s, err := gotalk.Connect("tcp", host.URL)
+	hostmap := node.ServiceStore[serviceName]
+	for host := range hostmap {
+		s, err := gotalk.Connect("tcp", host)
 		if err != nil {
-			console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with %s and returned error %s", serviceName, payLoad, host.URL, err.Error())
+			console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with %s and returned error %s", serviceName, payLoad, host, err.Error())
 		} else {
 			return s.BufferRequest(serviceName, payLoad)
 		}
-	}*/
+	}
 
-	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, payLoad, node.ServiceStore.Map[serviceName])
+	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, payLoad, hostmap)
 }

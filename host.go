@@ -149,32 +149,32 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//localSS := localNode.ServiceStore
 	//remoteSS := remoteMap.Map
 	//console.Log("localSS:%+v\tremoteSS:%+v", localSS, remoteSS)
-	localST := localNode.ServiceStore.TimeStamp.Round(localNode.ConvergenceWindow)
-	remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
+	//localST := localNode.ServiceStore.TimeStamp.Round(localNode.ConvergenceWindow)
+	//remoteST := remoteMap.LastUpdate.Round(localNode.ConvergenceWindow)
 	//console.Log("localST:%+v\tremoteST:%+v", localST, remoteST)
-	diff := timeDiff(localST, remoteST)
-	console.Log("Diff:%s\tWindow:%s", diff, localNode.ConvergenceWindow)
+	//diff := timeDiff(localST, remoteST)
+	//console.Log("Diff:%s\tWindow:%s", diff, localNode.ConvergenceWindow)
 
 	frame := remoteMap
 	frame.SourceHostName = localNode.Name
+	/*
+		//remove in final version
+		diff = 1 * time.Second
+		//remove in final version
 
-	//remove in final version
-	diff = 1 * time.Second
-	//remove in final version
-
-	// Sync At  ServiceMap Level
-	if diff < localNode.ConvergenceWindow {
-		//Both are in Sync
-		console.Log("Maps are in Sync, current frame:%+v", frame)
-	} else {
-		//Sync At Host Details Level
-		console.Log("Maps are out of Sync...Sync Needed")
-		frame.ServiceMap = remoteMap.ServiceMap
-		for svc, v := range localNode.ServiceStore.Map {
-			//TBD
-			console.Log("svc:%s\tv:%+v", svc, v)
-		}
-	}
+		// Sync At  ServiceMap Level
+		if diff < localNode.ConvergenceWindow {
+			//Both are in Sync
+			console.Log("Maps are in Sync, current frame:%+v", frame)
+		} else {
+			//Sync At Host Details Level
+			console.Log("Maps are out of Sync...Sync Needed")
+			frame.ServiceMap = remoteMap.ServiceMap
+			for svc, v := range localNode.ServiceStore {
+				//TBD
+				console.Log("svc:%s\tv:%+v", svc, v)
+			}
+		}*/
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
 
