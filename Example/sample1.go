@@ -25,12 +25,14 @@ func main() {
 	//serverB.BufferRequest("sys.addr", []byte("Testing Addr from Server B"))
 	//console.Log("serverB %+v", serverB)
 
-	console.LogMode = true
-
 	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
 	serverA.AddPeer(serverB.LocalHost.TCPUrl)
-
 	console.Log("\nserverA %+v\nserverB %+v", serverA.ServiceStore, serverB.ServiceStore)
+
+	console.LogMode = true
+
+	r, _ := serverA.BufferRequest("h2s", []byte("Calling h2s from Server A"))
+	console.Log("%#v", string(r))
 }
 
 func h1svcHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
