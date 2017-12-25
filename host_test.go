@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	testNode = GetNode("TestNode")
+	testNode  = GetNode("TestNode")
+	testNodeB = GetNode("TestNodeB")
 )
 
 func TestNode_SetLocalHost(t *testing.T) {
@@ -165,6 +166,42 @@ func Test_lastState(t *testing.T) {
 			if gotSd := lastState(tt.args.h1, tt.args.h2); !reflect.DeepEqual(gotSd, tt.wantSd) {
 				t.Errorf("lastState() = %v, want %v", gotSd, tt.wantSd)
 			}
+		})
+	}
+}
+
+func TestNode_AddPeer(t *testing.T) {
+
+	serverA := GetNode("ServerA")
+	serverA.SetLocalHost("tcp://localhost:7080", "")
+	serverA.StartTCPServer()
+	serverB := GetNode("ServerB")
+	serverB.SetLocalHost("tcp://localhost:7081", "")
+	serverB.StartTCPServer()
+
+	type args struct {
+		peerURLString string
+	}
+	tests := []struct {
+		name    string
+		node    *Node
+		args    args
+		wantErr bool
+	}{
+		{"empty peerURLString", serverA, args{""}, true},
+		{"bad peerURLString", serverA, args{"tcp://localhost:7072"}, true},
+		{"valid peerURLString", serverA, args{serverB.LocalHost.TCPUrl}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			err := tt.node.AddPeer(tt.args.peerURLString)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Node.AddPeer() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
 		})
 	}
 }

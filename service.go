@@ -69,7 +69,7 @@ func (node *Node) addService(service string, tcp string) error {
 }
 
 //BufferRequest Request for a Buffer/[]byte based service
-// version : 22dec2017
+// version : 25dec2017
 func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, error) {
 	console.Log("service.go::BufferRequest(serviceName: %s,payload:%s)", serviceName, string(payLoad))
 	//Basic Sanity Check
@@ -91,5 +91,5 @@ func (node *Node) BufferRequest(serviceName string, payLoad []byte) ([]byte, err
 		}
 	}
 
-	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, payLoad, node.ServiceStore[serviceName])
+	return nil, console.Error("gtmesh.go::BufferRequest(serviceName:%s,payload:%s) unable to connect with any hosts [%#v]", serviceName, string(payLoad), node.ServiceStore[serviceName])
 }

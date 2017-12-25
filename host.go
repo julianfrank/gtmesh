@@ -113,7 +113,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 	// Invoke SyncMap with local map as seed
 	res, err := s.BufferRequest("sys.syncmap", syncFrame)
 	if err != nil {
-		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\nError: %s", syncFrame, err.Error())
+		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\nError: %s", string(syncFrame), err.Error())
 	}
 	if res != nil {
 		console.Log("Sync Happened!\tres:%s", string(res))

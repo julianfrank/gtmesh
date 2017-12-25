@@ -26,6 +26,7 @@ func main() {
 	//console.Log("serverB %+v", serverB)
 
 	console.Log("Going to serverA.AddPeer(serverB: %s )", serverB.LocalHost.TCPUrl)
+	console.LogMode = true
 	serverA.AddPeer(serverB.LocalHost.TCPUrl)
 	console.Log("\nserverA %+v\nserverB %+v", serverA.ServiceStore, serverB.ServiceStore)
 
