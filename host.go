@@ -141,11 +141,18 @@ func (node *Node) AddPeer(peerURLString string) error {
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s)", s.Addr(), op, string(payload))
 
+	return syncMapService(payload)
+}
+
+// syncMapService Sync Service that takes the Sync Payload, Builds the Sync Frame, identifies Hosts to be synced with and Performs Sync
+func syncMapService(payload []byte) ([]byte, error) {
+	console.Log("host.go::syncMapService(payload: %s)", string(payload))
+
 	//Retreive the syncMap from the payload
 	var remoteMap syncMap
 	err := json.Unmarshal(payload, &remoteMap)
 	if err != nil {
-		return nil, console.Error("json.Unmarshal(payload: %s ...\tError:%s", string(payload), err.Error())
+		return nil, console.Error("host.go::syncMapService(payload)\tjson.Unmarshal(payload: %s...\tError:%s", string(payload), err.Error())
 	}
 	//console.Log("remoteMap:\t%+v", remoteMap)
 
@@ -166,7 +173,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 			//console.Log("local Sync NOT Needed for service:%s", svc)
 		} else {
 			for h, d := range hmap {
-				console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
+				//console.Log("svc:%s\thost:%s\tdetails:%+v", svc, h, d)
 				if _, ok := localSS[svc][h]; ok {
 					//console.Log("local Sync Needed for %+v", localSS[svc][h])
 
@@ -230,7 +237,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 
 	//Initiate Sync with identified Hosts as a separate GoRoutine
 	if len(broadCastHosts) > 0 {
-
+		//[TBD]Initiate SyncMap for Hosts in Broadcast List
 	}
 
 	// Copy baseFrame to local ServiceMap
@@ -239,7 +246,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//Respond with Updated Map if new else just send nil
 	syncFrame, err := json.Marshal(baseFrame)
 	if err != nil {
-		return nil, console.Error("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s) syncFrame, err := json.Marshal(baseFrame) Error: %s", s.Addr(), op, string(payload), err.Error())
+		return nil, console.Error("host.go::syncMapService(payload: %s) syncFrame, err := json.Marshal(baseFrame) Error: %s", string(payload), err.Error())
 	}
 	return syncFrame, nil
 }
