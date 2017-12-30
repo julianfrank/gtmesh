@@ -78,9 +78,10 @@ func (node *Node) StartTCPServer() error {
 }
 
 // syncMap Structure used to hold the Synchronization Frames
-// version : 22dec2017
+// version : 27dec2017
 type syncMap struct {
 	SourceHostName string     `json:"source_host_name"`
+	SourceHostURL  string     `json:"source_host_url"`
 	ServiceMap     ServiceMap `json:"service_map"`
 }
 
@@ -92,6 +93,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 	// Build frame to send to Peer
 	frame := syncMap{
 		SourceHostName: node.Name,
+		SourceHostURL:  node.LocalHost.TCPUrl,
 		ServiceMap:     node.ServiceStore,
 	}
 	syncFrame, err := json.Marshal(frame)
@@ -116,7 +118,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 		return console.Error("s.BufferRequest(`sys.syncmap`, syncFrame:%+v)\nError: %s", string(syncFrame), err.Error())
 	}
 	if res != nil {
-		console.Log("Sync Happened!\tres:%s", string(res))
+		//console.Log("Sync Happened!\tres:%s", string(res))
 		//Retreive the syncMap from the payload
 		var remoteMap syncMap
 		err := json.Unmarshal(res, &remoteMap)
@@ -135,7 +137,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 }
 
 //syncMapHandler Default Handler in All Servers to sendback address
-// version : 22dec2017
+// version : 27dec2017
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s)", s.Addr(), op, string(payload))
 
@@ -154,6 +156,7 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 
 	baseFrame := remoteMap
 	baseFrame.SourceHostName = localNode.Name
+	baseFrame.SourceHostURL = localNode.LocalHost.TCPUrl
 	//Sync by parsing the remoteSS
 	//console.Log("Performing Remote Map Scan")
 	for svc, hmap := range remoteSS {
@@ -206,7 +209,22 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	//console.Log("\n\nbaseFrame%s", prettyJSON(baseFrame))
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
-	//[TBD]
+	console.LogMode = true
+	broadCastHosts := make(map[string]time.Time)
+	for svc, hm := range baseFrame.ServiceMap {
+		for h, sd := range hm {
+			if h == localNode.LocalHost.TCPUrl {
+				console.Log("%s is the local TCP URL", h)
+			} else if h == remoteMap.SourceHostURL {
+				console.Log("%s is the current origin of Sync", h)
+			} else {
+				console.Log("%s\t%s\th:%s\tsd:%+v", localNode.Name, svc, h, sd)
+				broadCastHosts[h] = time.Now()
+			}
+		}
+	}
+	console.Log("broadCastHosts:%+v", broadCastHosts)
+	console.LogMode = false
 
 	//Initiate Sync with identified Hosts as a separate GoRoutine
 	//[TBD]
