@@ -137,7 +137,7 @@ func (node *Node) AddPeer(peerURLString string) error {
 }
 
 //syncMapHandler Default Handler in All Servers to sendback address
-// version : 27dec2017
+// version : 30dec2017
 func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.Log("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s)", s.Addr(), op, string(payload))
 
@@ -213,13 +213,15 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	broadCastHosts := make(map[string]time.Time)
 	for svc, hm := range baseFrame.ServiceMap {
 		for h, sd := range hm {
-			if h == localNode.LocalHost.TCPUrl {
+			if h == localNode.LocalHost.TCPUrl { //Do not add is the host is local node
 				console.Log("%s is the local TCP URL", h)
-			} else if h == remoteMap.SourceHostURL {
+			} else if h == remoteMap.SourceHostURL { //Do not add if host is the initiator of this frame
 				console.Log("%s is the current origin of Sync", h)
 			} else {
-				console.Log("%s\t%s\th:%s\tsd:%+v", localNode.Name, svc, h, sd)
-				broadCastHosts[h] = time.Now()
+				if time.Since(finalState(sd).Time) > localNode.ConvergenceWindow { // Ensure Change is outside convergence Window
+					console.Log("%s\t%s\th:%s\tsd:%+v", localNode.Name, svc, h, sd)
+					broadCastHosts[h] = time.Now()
+				}
 			}
 		}
 	}
@@ -227,7 +229,9 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 	console.LogMode = false
 
 	//Initiate Sync with identified Hosts as a separate GoRoutine
-	//[TBD]
+	if len(broadCastHosts) > 0 {
+
+	}
 
 	// Copy baseFrame to local ServiceMap
 	localNode.ServiceStore = baseFrame.ServiceMap
@@ -238,6 +242,28 @@ func syncMapHandler(s *gotalk.Sock, op string, payload []byte) ([]byte, error) {
 		return nil, console.Error("host.go::syncMapHandler(s.Addr(): %s,\top: %s,\tpayload: %s) syncFrame, err := json.Marshal(baseFrame) Error: %s", s.Addr(), op, string(payload), err.Error())
 	}
 	return syncFrame, nil
+}
+
+// FinalServiceState Structure to hold the final State Information of the Host directly in terms of create and delete and last time of change
+// Version : 30/July/2017
+type FinalServiceState struct {
+	State  string
+	Time   time.Time
+	Source string
+}
+
+// finalState Retrives the FinalServiceState from the provided ServiceData
+// Version 30July2017
+func finalState(sd ServiceData) (fss FinalServiceState) {
+	fss.Source = sd.Source
+	if sd.Created.After(sd.Deleted) {
+		fss.State = "created"
+		fss.Time = sd.Created
+	} else {
+		fss.State = "deleted"
+		fss.Time = sd.Deleted
+	}
+	return fss
 }
 
 // lastState Returns the Latest Object of the provides ServiceData Objects
