@@ -205,3 +205,160 @@ func TestNode_AddPeer(t *testing.T) {
 		})
 	}
 }
+
+func TestNode_connectSync(t *testing.T) {
+	type fields struct {
+		Name              string
+		LocalHost         Host
+		tcpServer         *gotalk.Server
+		wsServer          *gotalk.WebSocketServer
+		LocalServiceStore LocalServiceMap
+		ServiceStore      ServiceMap
+		ServiceHandlers   *gotalk.Handlers
+		ConvergenceWindow time.Duration
+	}
+	type args struct {
+		peerURLString string
+		syncFrame     []byte
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			node := &Node{
+				Name:              tt.fields.Name,
+				LocalHost:         tt.fields.LocalHost,
+				tcpServer:         tt.fields.tcpServer,
+				wsServer:          tt.fields.wsServer,
+				LocalServiceStore: tt.fields.LocalServiceStore,
+				ServiceStore:      tt.fields.ServiceStore,
+				ServiceHandlers:   tt.fields.ServiceHandlers,
+				ConvergenceWindow: tt.fields.ConvergenceWindow,
+			}
+			if err := node.connectSync(tt.args.peerURLString, tt.args.syncFrame); (err != nil) != tt.wantErr {
+				t.Errorf("Node.connectSync() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_syncMapHandler(t *testing.T) {
+	type args struct {
+		s       *gotalk.Sock
+		op      string
+		payload []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := syncMapHandler(tt.args.s, tt.args.op, tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("syncMapHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("syncMapHandler() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_syncMapService(t *testing.T) {
+	type args struct {
+		payload []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := syncMapService(tt.args.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("syncMapService() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("syncMapService() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_finalState(t *testing.T) {
+	type args struct {
+		sd ServiceData
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantFss FinalServiceState
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotFss := finalState(tt.args.sd); !reflect.DeepEqual(gotFss, tt.wantFss) {
+				t.Errorf("finalState() = %v, want %v", gotFss, tt.wantFss)
+			}
+		})
+	}
+}
+
+func Test_timeDiff(t *testing.T) {
+	type args struct {
+		t1 time.Time
+		t2 time.Time
+	}
+	tests := []struct {
+		name string
+		args args
+		want time.Duration
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := timeDiff(tt.args.t1, tt.args.t2); got != tt.want {
+				t.Errorf("timeDiff() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_prettyJSON(t *testing.T) {
+	type args struct {
+		i interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+	// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := prettyJSON(tt.args.i); got != tt.want {
+				t.Errorf("prettyJSON() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
