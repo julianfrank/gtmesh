@@ -86,9 +86,27 @@ type syncMap struct {
 }
 
 //AddPeer Add a New Peer to this Node
-// version : 22dec2017
+// version : 7Jan2017
 func (node *Node) AddPeer(peerURLString string) error {
 	console.Log("host.go::Node.addPeer(peerURLString: %s)", peerURLString)
+
+	return connectSync(node, peerURLString)
+}
+
+//connectSync Function to connect and sync with the provided peerURLString and syncFrame
+// version 7/Jan/2018
+func connectSync(node *Node, peerURLString string) error {
+	console.Log("host.go::Node.connectSync(peerURLString:%s)", peerURLString)
+
+	// Connect to Peer
+	s, err := gotalk.Connect("tcp", peerURLString)
+	if err != nil {
+		return console.Error("Node.AddPeer(peerURLString: %s)\tError: %s", peerURLString, err.Error())
+	}
+
+	//Attach Standard Utilities to Connection
+	s.UserData = node.Name
+	//[TBD]
 
 	// Build frame to send to Peer
 	frame := syncMap{
@@ -102,23 +120,6 @@ func (node *Node) AddPeer(peerURLString string) error {
 		return console.Error("Node.AddPeer(peerURLString: %s)\tsyncFrame,err:=json.Marshal(frame)\tError: %s", peerURLString, err.Error())
 	}
 	//console.Log("syncFrame:%s", string(syncFrame))
-	return node.connectSync(peerURLString, syncFrame)
-}
-
-//connectSync Function to connect and sync with the provided peerURLString and syncFrame
-// version 7/Jan/2018
-func (node *Node) connectSync(peerURLString string, syncFrame []byte) error {
-	console.Log("host.go::Node.connectSync(peerURLString:%s,\tsyncFrame:%s)", peerURLString, string(syncFrame))
-
-	// Connect to Peer
-	s, err := gotalk.Connect("tcp", peerURLString)
-	if err != nil {
-		return console.Error("Node.AddPeer(peerURLString: %s)\tError: %s", peerURLString, err.Error())
-	}
-
-	//Attach Standard Utilities to Connection
-	s.UserData = node.Name
-	//[TBD]
 
 	// Invoke SyncMap with local map as seed
 	res, err := s.BufferRequest("sys.syncmap", syncFrame)
@@ -239,11 +240,15 @@ func syncMapService(payload []byte) ([]byte, error) {
 			}
 		}
 	}
-	console.Log("broadCastHosts:%+v", broadCastHosts)
 
+	console.Log("broadCastHosts:%+v", broadCastHosts)
 	//Initiate Sync with identified Hosts as a separate GoRoutine
 	if len(broadCastHosts) > 0 {
 		//[TBD]Initiate SyncMap for Hosts in Broadcast List
+		for hst := range broadCastHosts {
+			console.Log("broadcasting to hst:%s", hst)
+			connectSync(localNode, hst)
+		}
 	}
 
 	// Copy baseFrame to local ServiceMap

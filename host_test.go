@@ -206,48 +206,6 @@ func TestNode_AddPeer(t *testing.T) {
 	}
 }
 
-func TestNode_connectSync(t *testing.T) {
-	type fields struct {
-		Name              string
-		LocalHost         Host
-		tcpServer         *gotalk.Server
-		wsServer          *gotalk.WebSocketServer
-		LocalServiceStore LocalServiceMap
-		ServiceStore      ServiceMap
-		ServiceHandlers   *gotalk.Handlers
-		ConvergenceWindow time.Duration
-	}
-	type args struct {
-		peerURLString string
-		syncFrame     []byte
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-	// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			node := &Node{
-				Name:              tt.fields.Name,
-				LocalHost:         tt.fields.LocalHost,
-				tcpServer:         tt.fields.tcpServer,
-				wsServer:          tt.fields.wsServer,
-				LocalServiceStore: tt.fields.LocalServiceStore,
-				ServiceStore:      tt.fields.ServiceStore,
-				ServiceHandlers:   tt.fields.ServiceHandlers,
-				ConvergenceWindow: tt.fields.ConvergenceWindow,
-			}
-			if err := node.connectSync(tt.args.peerURLString, tt.args.syncFrame); (err != nil) != tt.wantErr {
-				t.Errorf("Node.connectSync() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func Test_syncMapHandler(t *testing.T) {
 	type args struct {
 		s       *gotalk.Sock
