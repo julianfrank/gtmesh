@@ -96,11 +96,19 @@ func (node *Node) AddPeer(peerURLString string) error {
 		SourceHostURL:  node.LocalHost.TCPUrl,
 		ServiceMap:     node.ServiceStore,
 	}
+
 	syncFrame, err := json.Marshal(frame)
 	if err != nil {
 		return console.Error("Node.AddPeer(peerURLString: %s)\tsyncFrame,err:=json.Marshal(frame)\tError: %s", peerURLString, err.Error())
 	}
 	//console.Log("syncFrame:%s", string(syncFrame))
+	return node.connectSync(peerURLString, syncFrame)
+}
+
+//connectSync Function to connect and sync with the provided peerURLString and syncFrame
+// version 7/Jan/2018
+func (node *Node) connectSync(peerURLString string, syncFrame []byte) error {
+	console.Log("host.go::Node.connectSync(peerURLString:%s,\tsyncFrame:%s)", peerURLString, string(syncFrame))
 
 	// Connect to Peer
 	s, err := gotalk.Connect("tcp", peerURLString)
@@ -216,7 +224,6 @@ func syncMapService(payload []byte) ([]byte, error) {
 	//console.Log("\n\nbaseFrame%s", prettyJSON(baseFrame))
 
 	//Prepare List of Host to Propagate Sync. Exclude Sender.Also Do not perform if sync Date of sender is older
-	console.LogMode = true
 	broadCastHosts := make(map[string]time.Time)
 	for svc, hm := range baseFrame.ServiceMap {
 		for h, sd := range hm {
@@ -233,7 +240,6 @@ func syncMapService(payload []byte) ([]byte, error) {
 		}
 	}
 	console.Log("broadCastHosts:%+v", broadCastHosts)
-	console.LogMode = false
 
 	//Initiate Sync with identified Hosts as a separate GoRoutine
 	if len(broadCastHosts) > 0 {
