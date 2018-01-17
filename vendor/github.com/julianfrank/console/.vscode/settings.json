@@ -1,0 +1,7 @@
+{
+    "files.autoSave": "afterDelay",
+    "editor.renderWhitespace": "boundary",
+    "editor.wordWrap": "bounded",
+    "editor.formatOnSave": true,
+    "editor.minimap.maxColumn": 150
+}
