@@ -5,3 +5,5 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/julianfrank/gtmesh)](https://goreportcard.com/report/github.com/julianfrank/gtmesh)
 [![Gitter](https://img.shields.io/badge/gitter-join-brightgreen.svg)](https://gitter.im/jfopensource/gtmesh)
 
+# GT-Mesh
+## A Peer-To-Peer Mesh Implementation of GoTalk [![rsms/gotalk]](https://github.com/rsms/gotalk)
