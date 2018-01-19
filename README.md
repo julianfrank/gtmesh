@@ -17,9 +17,9 @@ I found Rasmus's Gotalk to be very useful for RPC and with more experimentation 
 [TBD]
 
 ## To-Do
-[ ] Better Tests
-[ ] Convergence Algorithm Fine Tuning
-[ ] Standard Metrics
-[ ] Metrics Reporting
-[ ] Web Socket Endpoint Functionality
-[ ] REST EndPoint Functionality
+- [ ] Better Tests
+- [ ] Convergence Algorithm Fine Tuning
+- [ ] Standard Metrics
+- [ ] Metrics Reporting
+- [ ] Web Socket Endpoint Functionality
+- [ ] REST EndPoint Functionality
