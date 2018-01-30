@@ -1,4 +1,5 @@
-![experimental](https://svg-badge.appspot.com/badge/stability/experimental?f44)
+![Experimental](https://svg-badge.appspot.com/badge/stability/experimental?f88)
+![Alternative](https://svg-badge.appspot.com/badge/Alternative/libp2p?f44)
 
 [![GoDoc](https://godoc.org/github.com/julianfrank/gtmesh?status.svg)](https://godoc.org/github.com/julianfrank/gtmesh)
 [![Coverage Status](https://coveralls.io/repos/github/julianfrank/gtmesh/badge.svg?branch=master)](https://coveralls.io/github/julianfrank/gtmesh?branch=master) 
